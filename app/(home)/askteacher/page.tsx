@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Search, ChevronDown, Send, X, BookOpen, Users, FileText, Image, Link2, Globe2 } from 'lucide-react'
 
-export default function PostDoubtPage() {
+ function PostDoubtPage() {
     type Teacher = {
         id: number;
         name: string;
@@ -178,3 +178,5 @@ function DoubtTypeButton({ icon, label, active, onClick }: {
     </button>
   )
 }
+
+export default PostDoubtPage

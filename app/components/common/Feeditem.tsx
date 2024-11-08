@@ -7,7 +7,7 @@ import React from 'react'
 function FeedItem({ post, onVote   }: { post: Post, onVote?: (postId: string, voteType: 'upvote' | 'downvote') => void }) {
     const handleShare = async () => {
       try {
-        const postLink = `${window.location.origin}/home/${post.id}`;
+        const postLink = `${ window && window.location.origin}/home/${post.id}`;
         await navigator.clipboard.writeText(postLink);
         alert("Link copied to clipboard!");
       } catch (error) {
