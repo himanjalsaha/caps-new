@@ -19,7 +19,6 @@ type Post = {
   upvotes: number;
   downvotes: number;
   likes: string[];
-  bgColor : string;
   createdAt: string;
   updatedAt: string;
   userVote?: 'upvote' | 'downvote' | null;
@@ -199,6 +198,7 @@ export default function HomeFeed() {
                 key={post.id}
                 post={post}
                 onVote={handleVote}
+            
               />
             ))}
           </div>
@@ -208,7 +208,7 @@ export default function HomeFeed() {
   )
 }
 
- export  function FeedItem({ post, onVote ,  bgColor = "#242526"  }: { post: Post, onVote: (postId: string, voteType: 'upvote' | 'downvote') => void , bgColor:string}) {
+ export  function FeedItem({ post, onVote   }: { post: Post, onVote: (postId: string, voteType: 'upvote' | 'downvote') => void }) {
   const handleShare = async () => {
     try {
       const postLink = `${window.location.origin}/home/${post.id}`;
@@ -220,7 +220,7 @@ export default function HomeFeed() {
   };
 
   return (
-    <div className={`bg-[${bgColor}] rounded-xl p-4 hover:bg-[#2D2E2F] transition-colors`}>
+    <div className={`bg-[#242526] rounded-xl p-4 hover:bg-[#2D2E2F] transition-colors`}>
       <div className="flex items-start gap-4">
         {/* Voting section */}
         <div className="flex flex-col items-center gap-1">

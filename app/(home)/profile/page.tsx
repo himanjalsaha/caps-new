@@ -10,6 +10,8 @@ export default function UserProfile() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
 
+
+
   useEffect(() => {
     fetchPosts()
   }, [])
@@ -29,6 +31,8 @@ export default function UserProfile() {
     }
   }
 
+  
+
   if (!session) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#18191A]">
@@ -40,6 +44,24 @@ export default function UserProfile() {
   }
 
   const filteredPosts = posts.filter((post) => post.userId === session?.user.id)
+
+  const handleVote = async (postId: string, voteType: 'upvote' | 'downvote') => {
+    setPosts(currentPosts => currentPosts.map(post => {
+      if (post.id === postId) {
+        const isRemovingVote = post.userVote === voteType;
+        return {
+          ...post,
+          upvotes: voteType === 'upvote' 
+            ? (isRemovingVote ? post.upvotes - 1 : post.upvotes + 1) 
+            : post.upvotes,
+          downvotes: voteType === 'downvote' 
+            ? (isRemovingVote ? post.downvotes - 1 : post.downvotes + 1) 
+            : post.downvotes,
+          userVote: isRemovingVote ? null : voteType
+        };
+      }
+      return post;
+    }));
 
   return (
     <div className="min-h-screen bg-[#18191A] text-gray-100">
@@ -116,7 +138,7 @@ export default function UserProfile() {
             ) : (
               <div className="space-y-6">
                 {filteredPosts.map((post) => (
-                  <FeedItem key={post.id} post={post}   />
+                  <FeedItem key={post.id} post={post} onVote={handleVote}   />
                 ))}
               </div>
             )}
@@ -129,4 +151,5 @@ export default function UserProfile() {
       </div>
     </div>
   )
+}
 }

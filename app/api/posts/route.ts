@@ -130,7 +130,7 @@ export async function PUT(request: Request) {
   
       return NextResponse.json({ post: updatedPost });
   
-    } catch (error) {
+    } catch (error:any) {
       console.error('PUT error:', error);
   
       if (error.code === 'P2025') {
@@ -162,7 +162,7 @@ export async function DELETE(request: Request) {
       { message: 'Post deleted successfully' },
       { status: 200 }
     )
-  } catch (error) {
+  } catch (error:any) {
     console.error('DELETE error:', error)
     if (error.code === 'P2025') {
       return NextResponse.json(

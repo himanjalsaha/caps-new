@@ -2,10 +2,11 @@
 import { useState } from "react"
 import { Plus } from "lucide-react"
 import CreatePostModal from "./postQuestionModal"
-
+import { Post } from "@/types/next-auth"
 interface MainComponentProps {
   buttonText: string
   background?: boolean
+  onPostCreated?: (newPost: Post) => void;
 }
 
 function PostButton({ buttonText, background = true }: MainComponentProps) {
