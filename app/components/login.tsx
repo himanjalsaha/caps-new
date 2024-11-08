@@ -21,11 +21,19 @@ export function LoginFormDemo() {
     const password = formData.get("password") as string;
 
     try {
-      const result = await signIn("credentials", {
+      const promise = signIn("credentials", {
         redirect: false,
         email,
         password,
       });
+
+      toast.promise(promise, {
+        loading: "Logging in...",
+        success: "Logged in successfully!",
+        error: "Invalid email or password"
+      });
+
+      const result = await promise;
 
       if (result?.error) {
         toast.error(result.error);

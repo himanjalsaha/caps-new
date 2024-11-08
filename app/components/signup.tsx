@@ -81,7 +81,15 @@ export function SignupFormDemo() {
     };
 
     try {
-      const response = await axios.post("/api/signup", data);
+      const promise = axios.post("/api/signup", data);
+
+      toast.promise(promise, {
+        loading: "Signing up...",
+        success: "Account created successfully!",
+        error: "An unexpected error occurred during signup"
+      });
+
+      const response = await promise;
 
       if (response.status === 201) {
         const result = await signIn("credentials", {
