@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        console.log('body-------', body);
         const { email, password, department, semester, campus, course } = body;
 
         // Validate all required fields
