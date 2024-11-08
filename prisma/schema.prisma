@@ -38,19 +38,22 @@ model Session {
 }
 
 model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  name      String?
-  email     String   @unique
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String   
   emailVerified DateTime?
-  image     String?
-  password  String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt
-  profile   Profile?
+  image         String?
+  password      String
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt
+  profile       Profile?
   hasProfile    Boolean   @default(false) 
   accounts      Account[]
   sessions      Session[]
-  doubtPosts    DoubtPost[]   @relation("UserDoubtPosts")
+  doubtPosts    DoubtPost[] @relation("UserDoubtPosts")
+  answers       Answer[]
+
+  @@index([email])
 }
 
 model VerificationToken {
@@ -73,22 +76,44 @@ model Profile {
   semester   String?
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt
+
+  @@index([campus])
 }
 
 model DoubtPost {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   title       String 
   description String
   tags        String[]
   imgUrl      String[]
-  userId      String   @db.ObjectId
-  user        User     @relation("UserDoubtPosts", fields: [userId], references: [id])
+  userId      String    @db.ObjectId
+  user        User      @relation("UserDoubtPosts", fields: [userId], references: [id])
   userName    String
   userRole    String
-  upvotes     Int      @default(0)
-  downvotes   Int      @default(0)
-  likes       String[] // Array of user IDs who liked the post
-  answers     Json[]   // Array of answer objects
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  upvotes     Int       @default(0)
+  downvotes   Int       @default(0)
+  likes       String[]  // Array of user IDs who liked the post
+  answers     Answer[]  // Relation to Answer model
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([tags])
+  @@index([createdAt(sort: Desc)])
+  @@index([userId])
+}
+
+model Answer {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  content     String
+  userId      String    @db.ObjectId
+  user        User      @relation(fields: [userId], references: [id])
+  doubtPostId String    @db.ObjectId
+  doubtPost   DoubtPost @relation(fields: [doubtPostId], references: [id])
+  upvotes     Int       @default(0)
+  downvotes   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([doubtPostId])
+  @@index([userId])
 }

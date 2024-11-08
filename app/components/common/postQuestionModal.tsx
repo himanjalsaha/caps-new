@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { X, ChevronDown, Globe2, Image, Link2, FileText, Users, BookOpen } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
 export default function CreatePostModal({ onClose }: { onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<'question' | 'post'>('question')
@@ -9,11 +11,55 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
   const [selectedCourse, setSelectedCourse] = useState('')
   const [visibility, setVisibility] = useState('Everyone')
   const [postType, setPostType] = useState('Question')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { data: session } = useSession()
+  const router = useRouter()
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle submission logic here
-    onClose()
+    if (!session?.user) {
+      alert('You must be logged in to create a post')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch('/posts?action=create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: postType,
+          description: postText,
+          tags: [selectedCourse],
+          imgUrl: [],
+          userId: session.user?.id,
+          userName: session.user.name || 'Anonymous',
+          userRole: 'Student', // You might want to get this from the user's profile
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create post')
+      }
+
+      const newPost = await response.json()
+      console.log('New post created:', newPost)
+
+      // Refresh the posts list
+      router.refresh()
+
+      // Close the modal
+      onClose()
+    } catch (error) {
+      console.error('Error creating post:', error)
+      alert('Failed to create post. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -57,10 +103,10 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
           {/* User Info */}
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-              A
+              {session?.user?.name?.[0] || 'A'}
             </div>
             <div className="flex-1">
-              <h3 className="font-medium text-white">Alex Johnson</h3>
+              <h3 className="font-medium text-white">{session?.user?.name || 'Anonymous'}</h3>
               <button className="text-sm text-blue-500 hover:text-blue-400 flex items-center gap-1">
                 Computer Science Student
                 <ChevronDown className="w-4 h-4" />
@@ -148,9 +194,10 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
               </button>
               <button
                 type="submit"
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded-full font-medium transition-colors"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmitting || !postText.trim() || !selectedCourse}
               >
-                {activeTab === 'question' ? 'Post Question' : 'Share Post'}
+                {isSubmitting ? 'Posting...' : activeTab === 'question' ? 'Post Question' : 'Share Post'}
               </button>
             </div>
           </div>
