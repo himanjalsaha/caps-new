@@ -108,7 +108,7 @@ export default function PostDoubtPage() {
             <textarea
               value={doubt}
               onChange={(e) => setDoubt(e.target.value)}
-              className="w-full min-h-[200px] bg-[#3A3B3C] border border-[#4E4F50] rounded-lg px-4 py-2 text-white placeholder-gray-400 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full min-h-[200px] bg-[#242526] border border-[#242526] rounded-lg px-4 py-2 text-white placeholder-gray-400 text-lg resize-none  "
               placeholder="Type your doubt here... Be specific to help the teacher understand your question better."
               required
             ></textarea>

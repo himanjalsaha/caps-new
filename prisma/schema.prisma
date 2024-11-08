@@ -93,6 +93,7 @@ model DoubtPost {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   title       String 
   description String
+  subject     String
   tags        String[]
   imgUrl      String[]
   userId      String    @db.ObjectId

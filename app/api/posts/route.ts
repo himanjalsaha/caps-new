@@ -1,293 +1,178 @@
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from 'next/server'
+import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
-export async function POST(req: Request) {
-  const url = new URL(req.url);
-  const action = url.searchParams.get('action');
+export async function POST(request: Request) {
+  try {
+    const body = await request.json()
+    const { title, description, subject, tags, imgUrl, userId } = body
 
-  if (action === 'create') {
-    try {
-      const { title, description, tags, imgUrl, userId, userName, userRole } =
-        await req.json();
-
-      const newDoubtPost = await prisma.doubtPost.create({
-        data: {
-          title,
-          description,
-          tags,
-          imgUrl,
-          userId,
-          userName,
-          userRole,
-          likes: [],
-        },
-        include: {
-          user: {
-            include: {
-              profile: {
-                select: {
-                  department: true,
-                  course: true,
-                },
-              },
-            },
-          },
-          answers: true,
-        },
-      });
-
-      const responsePost = {
-        ...newDoubtPost,
-        department: newDoubtPost.user.profile?.department || "Unknown",
-        course: newDoubtPost.user.profile?.course || "Unknown",
-      };
-
-      return NextResponse.json(responsePost, { status: 201 });
-    } catch (error) {
-      console.error('Error creating post:', error);
+    if (!title || !description || !userId || !subject) {
       return NextResponse.json(
-        { error: "Failed to create post", details: error },
-        { status: 500 }
-      );
+        { error: 'Missing required fields' },
+        { status: 400 }
+      )
     }
-  } else if (action === 'answer') {
-    try {
-      const { doubtPostId, userId, content } = await req.json();
 
-      const newAnswer = await prisma.answer.create({
-        data: {
-          content,
-          userId,
-          doubtPostId,
-        },
-        include: {
-          user: true,
-          doubtPost: {
-            include: {
-              user: {
-                include: {
-                  profile: {
-                    select: {
-                      department: true,
-                      course: true,
-                    },
-                  },
-                },
-              },
-              answers: {
-                include: {
-                  user: true,
-                },
-              },
-            },
-          },
-        },
-      });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true }
+    })
 
-      const responsePost = {
-        ...newAnswer.doubtPost,
-        department: newAnswer.doubtPost.user.profile?.department || "Unknown",
-        course: newAnswer.doubtPost.user.profile?.course || "Unknown",
-        answers: newAnswer.doubtPost.answers,
-      };
-
-      return NextResponse.json(responsePost, { status: 200 });
-    } catch (error) {
-      console.error('Error adding answer:', error);
+    if (!user) {
       return NextResponse.json(
-        { error: "Failed to add answer", details: error },
-        { status: 500 }
-      );
+        { error: 'User not found' },
+        { status: 404 }
+      )
     }
-  } else {
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-  }
-}
 
-export async function GET() {
-  try {
-    const doubtPosts = await prisma.doubtPost.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-      include: {
-        user: {
-          include: {
-            profile: {
-              select: {
-                department: true,
-                course: true,
-              },
-            },
-          },
-        },
-        answers: {
-          include: {
-            user: true,
-          },
-        },
-      },
-    });
-
-    const doubtPostsWithProfile = doubtPosts.map((post) => ({
-      ...post,
-      department: post.user.profile?.department || "Unknown",
-      course: post.user.profile?.course || "Unknown",
-    }));
-
-    return NextResponse.json(doubtPostsWithProfile, { status: 200 });
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch posts", details: error },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(req: Request) {
-  try {
-    const { id } = await req.json();
-
-    // Delete associated answers first
-    await prisma.answer.deleteMany({
-      where: { doubtPostId: id },
-    });
-
-    const deletedDoubtPost = await prisma.doubtPost.delete({
-      where: { id },
-    });
-
-    return NextResponse.json(deletedDoubtPost, { status: 200 });
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to delete post", details: error },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(req: Request) {
-  try {
-    const { id, title, description, tags, imgUrl, upvotes, downvotes } =
-      await req.json();
-
-    const updatedDoubtPost = await prisma.doubtPost.update({
-      where: { id },
+    const post = await prisma.doubtPost.create({
       data: {
         title,
         description,
-        tags,
-        imgUrl,
-        upvotes,
-        downvotes,
+        subject,
+        tags: tags || [],
+        imgUrl: imgUrl || [],
+        userId,
+        userName: user.name || user.email?.split('@')[0] || 'Anonymous',
+        userRole: 'Student',
       },
-      include: {
-        user: {
-          include: {
-            profile: {
-              select: {
-                department: true,
-                course: true,
-              },
-            },
-          },
-        },
-        answers: {
-          include: {
-            user: true,
-          },
-        },
-      },
-    });
+    })
 
-    const responsePost = {
-      ...updatedDoubtPost,
-      department: updatedDoubtPost.user.profile?.department || "Unknown",
-      course: updatedDoubtPost.user.profile?.course || "Unknown",
-    };
-
-    return NextResponse.json(responsePost, { status: 200 });
-  } catch (error: any) {
-    console.error('Error updating post:', error);
+    return NextResponse.json(post, { status: 201 })
+  } catch (error) {
+    console.error('POST error:', error)
     return NextResponse.json(
-      { error: "Failed to update post", details: error.message || error },
+      { error: 'Internal Server Error' },
       { status: 500 }
-    );
+    )
   }
 }
 
-export async function PATCH(req: Request) {
+export async function GET(request: Request) {
   try {
-    const { id, userId, action } = await req.json();
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
 
-    const post = await prisma.doubtPost.findUnique({
-      where: { id },
-    });
+    if (id) {
+      const post = await prisma.doubtPost.findUnique({
+        where: { id },
+        include: { user: { select: { name: true, email: true } } }
+      })
 
-    if (!post) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
-    }
-
-    let updatedLikes = [...post.likes];
-    let updatedUpvotes = post.upvotes;
-    let updatedDownvotes = post.downvotes;
-
-    if (action === 'like') {
-      if (!updatedLikes.includes(userId)) {
-        updatedLikes.push(userId);
-        updatedUpvotes += 1;
+      if (!post) {
+        return NextResponse.json(
+          { error: 'Post not found' },
+          { status: 404 }
+        )
       }
-    } else if (action === 'unlike') {
-      updatedLikes = updatedLikes.filter(id => id !== userId);
-      updatedUpvotes = Math.max(0, updatedUpvotes - 1);
-    } else if (action === 'dislike') {
-      updatedDownvotes += 1;
-    } else if (action === 'undislike') {
-      updatedDownvotes = Math.max(0, updatedDownvotes - 1);
+
+      return NextResponse.json({ post })
     } else {
-      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+      const posts = await prisma.doubtPost.findMany({
+        include: { user: { select: { name: true, email: true } } },
+        orderBy: { createdAt: 'desc' }
+      })
+
+      return NextResponse.json({ posts })
+    }
+  } catch (error) {
+    console.error('GET error:', error)
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    )
+  }
+}
+export async function PUT(request: Request) {
+    try {
+      const { searchParams } = new URL(request.url);
+      const id = searchParams.get('id');
+  
+      if (!id) {
+        return NextResponse.json({ error: 'Missing post ID' }, { status: 400 });
+      }
+  
+      const body = await request.json();
+  
+      // Validate that at least one field is provided
+      if (Object.keys(body).length === 0) {
+        return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+      }
+  
+      // Dynamically prepare the update data from the provided body
+      const updateData: any = {};
+  
+      // Add any provided field to updateData
+      if (body.title) updateData.title = body.title;
+      if (body.description) updateData.description = body.description;
+      if (body.subject) updateData.subject = body.subject;
+      if (body.tags) updateData.tags = body.tags;
+      if (body.imgUrl) updateData.imgUrl = body.imgUrl;
+  
+      // Handle upvotes and downvotes
+      if (body.voteType) {
+        if (body.voteType === 'upvote') {
+          updateData.upvotes = { increment: 1 }; // Increment upvotes
+        } else if (body.voteType === 'downvote') {
+          updateData.downvotes = { increment: 1 }; // Increment downvotes
+        } else {
+          return NextResponse.json({ error: 'Invalid vote type' }, { status: 400 });
+        }
+      }
+  
+      // Update the post
+      const updatedPost = await prisma.doubtPost.update({
+        where: { id },
+        data: updateData,
+      });
+  
+      return NextResponse.json({ post: updatedPost });
+  
+    } catch (error) {
+      console.error('PUT error:', error);
+  
+      if (error.code === 'P2025') {
+        return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+      }
+  
+      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+  }
+  
+  
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Missing post ID' },
+        { status: 400 }
+      )
     }
 
-    const updatedPost = await prisma.doubtPost.update({
+    await prisma.doubtPost.delete({
       where: { id },
-      data: {
-        likes: updatedLikes,
-        upvotes: updatedUpvotes,
-        downvotes: updatedDownvotes,
-      },
-      include: {
-        user: {
-          include: {
-            profile: {
-              select: {
-                department: true,
-                course: true,
-              },
-            },
-          },
-        },
-        answers: {
-          include: {
-            user: true,
-          },
-        },
-      },
-    });
+    })
 
-    const responsePost = {
-      ...updatedPost,
-      department: updatedPost.user?.profile?.department || "Unknown",
-      course: updatedPost.user?.profile?.course || "Unknown",
-    };
-
-    return NextResponse.json(responsePost, { status: 200 });
-  } catch (error: any) {
-    console.error('Error updating likes/dislikes:', error);
     return NextResponse.json(
-      { error: "Failed to update likes/dislikes", details: error.message || error },
+      { message: 'Post deleted successfully' },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error('DELETE error:', error)
+    if (error.code === 'P2025') {
+      return NextResponse.json(
+        { error: 'Post not found' },
+        { status: 404 }
+      )
+    }
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
       { status: 500 }
-    );
+    )
   }
 }

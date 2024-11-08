@@ -11,6 +11,7 @@ declare module "next-auth" {
       campus?: string
       course?: string
       semester?: string
+      role?  :string
     } & DefaultSession["user"]
   }
 
@@ -21,3 +22,28 @@ declare module "next-auth" {
     semester?: string
   }
 }
+
+
+export type Post = {
+    id: string;
+    title: string;
+    description: string;
+    subject: string;
+    tags: string[];
+    imgUrl: string[];
+    userId: string;
+    userName: string;
+    userRole: string;
+    upvotes: number;
+    downvotes: number;
+    likes: string[];
+    createdAt: string;
+    updatedAt: string;
+    userVote?: 'upvote' | 'downvote' | null;
+    user: {
+      name: string | null;
+      email: string;
+    };
+  
+  }
+  
