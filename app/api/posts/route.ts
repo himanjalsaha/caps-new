@@ -278,8 +278,8 @@ export async function PATCH(req: Request) {
 
     const responsePost = {
       ...updatedPost,
-      department: updatedPost.user.profile?.department || "Unknown",
-      course: updatedPost.user.profile?.course || "Unknown",
+      department: updatedPost.user?.profile?.department || "Unknown",
+      course: updatedPost.user?.profile?.course || "Unknown",
     };
 
     return NextResponse.json(responsePost, { status: 200 });

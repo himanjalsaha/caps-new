@@ -1,8 +1,13 @@
 "use client";
-import React from "react";
+
+import React, { useState } from "react";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import { toast, Toaster } from "sonner";
+import { signIn } from "next-auth/react";
 
 const campusOptions = [
   { value: "Bangalore Central Campus", label: "Bangalore Central Campus" },
@@ -58,9 +63,56 @@ const semesterOptions = [
 ];
 
 export function SignupFormDemo() {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted");
+    setIsLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+      department: formData.get("department") as string,
+      semester: formData.get("semester") as string,
+      campus: formData.get("campus") as string,
+      course: formData.get("course") as string
+    };
+
+    try {
+      const response = await axios.post("/api/signup", data);
+
+      if (response.status === 201) {
+        const result = await signIn("credentials", {
+          redirect: false,
+          email: data.email,
+          password: data.password,
+        });
+
+        if (!result?.error) {
+          toast.success("Account created successfully!");
+          router.push("/home");
+        } else {
+          toast.error("Login failed after signup.");
+        }
+      }
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response) {
+        const errorMessage = error.response.data.message || "An unexpected error occurred";
+        toast.error(errorMessage);
+
+        if (error.response.data.errors) {
+          error.response.data.errors.forEach((err: { message: string }) => {
+            toast.error(err.message);
+          });
+        }
+      } else {
+        toast.error("An unexpected error occurred during signup");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -73,25 +125,25 @@ export function SignupFormDemo() {
       </p>
 
       <form className="my-8" onSubmit={handleSubmit}>
-        {/* Email Field */}
         <LabelInputContainer className="mb-4">
           <Label htmlFor="email">Email Address</Label>
-          <Input id="email" placeholder="youremail@example.com" type="email" />
+          <Input id="email" name="email" placeholder="youremail@example.com" type="email" required />
         </LabelInputContainer>
 
-        {/* Password Field */}
         <LabelInputContainer className="mb-4">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" placeholder="••••••••" type="password" />
+          <Input id="password" name="password" placeholder="••••••••" type="password" required />
         </LabelInputContainer>
 
-        {/* Department Field (Select) */}
         <LabelInputContainer className="mb-4">
           <Label htmlFor="department">Department</Label>
           <select
             id="department"
-            className="border rounded px-2 py-2 bg-[#27272A] text-gray-200 dark:text-white"
+            name="department"
+            className="w-full px-3 py-2 text-gray-700 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            required
           >
+            <option value="">Select Department</option>
             {departmentOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -100,13 +152,15 @@ export function SignupFormDemo() {
           </select>
         </LabelInputContainer>
 
-        {/* Semester Field (Select) */}
         <LabelInputContainer className="mb-4">
           <Label htmlFor="semester">Semester</Label>
           <select
             id="semester"
-            className="border rounded px-2 py-2 bg-[#27272A] text-gray-200 dark:text-white"
+            name="semester"
+            className="w-full px-3 py-2 text-gray-700 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            required
           >
+            <option value="">Select Semester</option>
             {semesterOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -115,13 +169,15 @@ export function SignupFormDemo() {
           </select>
         </LabelInputContainer>
 
-        {/* Campus Field (Select) */}
         <LabelInputContainer className="mb-4">
           <Label htmlFor="campus">Campus</Label>
           <select
             id="campus"
-            className="border rounded px-2 py-2 bg-[#27272A] text-gray-200 dark:text-white"
+            name="campus"
+            className="w-full px-3 py-2 text-gray-700 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            required
           >
+            <option value="">Select Campus</option>
             {campusOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -130,13 +186,15 @@ export function SignupFormDemo() {
           </select>
         </LabelInputContainer>
 
-        {/* Course Field (Select) */}
         <LabelInputContainer className="mb-4">
           <Label htmlFor="course">Course</Label>
           <select
             id="course"
-            className="border rounded px-2 py-2 bg-[#27272A] text-gray-200 dark:text-white"
+            name="course"
+            className="w-full px-3 py-2 text-gray-700 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            required
           >
+            <option value="">Select Course</option>
             {courseOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -145,16 +203,16 @@ export function SignupFormDemo() {
           </select>
         </LabelInputContainer>
 
-        {/* Submit Button */}
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded-md mt-4 font-medium"
+          className="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded-md mt-4 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           type="submit"
+          disabled={isLoading}
         >
-          Sign Up
+          {isLoading ? "Signing Up..." : "Sign Up"}
         </button>
       </form>
+      <Toaster />
 
-      {/* Log In Link */}
       <div className="text-center mt-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Already have an account?{" "}
