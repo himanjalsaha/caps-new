@@ -3,7 +3,8 @@
 import { useSession, signOut } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Post } from "@/types/next-auth"
-import { FeedItem } from "../home/page"
+import FeedItem from "@/app/components/common/Feeditem"
+
 
 export default function UserProfile() {
   const { data: session } = useSession()
