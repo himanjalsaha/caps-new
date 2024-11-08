@@ -56,9 +56,9 @@ const Header = () => {
 
         <div className="hidden md:flex items-center gap-3">
           <PostButton buttonText='Ask Question'/>
-          <button className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center font-semibold">
+          <Link href='/profile' className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center font-semibold">
             A
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -95,9 +95,9 @@ const Header = () => {
                 label="Notifications"
               />
               <PostButton buttonText='Ask Your Doubt'/>
-              <button className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center font-semibold">
+              <Link href='/profile' className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center font-semibold">
                 A
-              </button>
+              </Link>
             </div>
           </div>
         </div>
