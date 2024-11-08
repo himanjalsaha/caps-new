@@ -1,8 +1,12 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import { toast, Toaster } from "sonner";
+import { signIn } from "next-auth/react";
 
 const campusOptions = [
   { value: "Bangalore Central Campus", label: "Bangalore Central Campus" },
@@ -58,9 +62,62 @@ const semesterOptions = [
 ];
 
 export function SignupFormDemo() {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted");
+    setError("");
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      email: formData.get("email"),
+      password: formData.get("password"),
+      department: formData.get("department"),
+      semester: formData.get("semester"),
+      campus: formData.get("campus"),
+      course: formData.get("course")
+    };
+
+    try {
+      console.log(data);
+      const response = await axios.post("/api/signup", data);
+      
+
+      if (response.status === 201) {
+        const result = await signIn("credentials", {
+          callbackUrl: "/home",
+          email: data.email,
+          password: data.password,
+          redirect: false,
+        });
+
+        if (!result?.error) {
+          toast.success("Account created successfully!");
+          router.push("/home");
+        } else {
+          toast.error("Login failed after signup.");
+        }
+      }
+    } catch (error: any) {
+      if (error.response) {
+        // Handle specific error messages from the backend
+        const errorMessage = error.response.data.message;
+        toast.error(errorMessage);
+
+        // Handle validation errors if they exist
+        if (error.response.data.errors) {
+          error.response.data.errors.forEach((err: { message: string }) => {
+            toast.error(err.message);
+          });
+        }
+      } else {
+        toast.error("An unexpected error occurred during signup");
+      }
+      setError(error.response?.data?.message || "An unexpected error occurred");
+    } finally {
+    }
   };
 
   return (
@@ -76,20 +133,22 @@ export function SignupFormDemo() {
         {/* Email Field */}
         <LabelInputContainer className="mb-4">
           <Label htmlFor="email">Email Address</Label>
-          <Input id="email" placeholder="youremail@example.com" type="email" />
+          <Input id="email" name="email" placeholder="youremail@example.com" type="email" />
         </LabelInputContainer>
 
         {/* Password Field */}
         <LabelInputContainer className="mb-4">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" placeholder="••••••••" type="password" />
+          <Input id="password" name="password" placeholder="••••••••" type="password" />
         </LabelInputContainer>
 
         {/* Department Field (Select) */}
         <LabelInputContainer className="mb-4">
-          <Label htmlFor="department">Department</Label>
+          <Label htmlFor="department" >Department</Label>
           <select
             id="department"
+            name="department"
+            aria-label="Select department"
             className="border rounded px-2 py-2 bg-[#27272A] text-gray-200 dark:text-white"
           >
             {departmentOptions.map((option) => (
@@ -105,6 +164,8 @@ export function SignupFormDemo() {
           <Label htmlFor="semester">Semester</Label>
           <select
             id="semester"
+            name="semester"
+            aria-label="Select semester"
             className="border rounded px-2 py-2 bg-[#27272A] text-gray-200 dark:text-white"
           >
             {semesterOptions.map((option) => (
@@ -120,6 +181,8 @@ export function SignupFormDemo() {
           <Label htmlFor="campus">Campus</Label>
           <select
             id="campus"
+            name="campus"
+            aria-label="Select campus"
             className="border rounded px-2 py-2 bg-[#27272A] text-gray-200 dark:text-white"
           >
             {campusOptions.map((option) => (
@@ -135,6 +198,8 @@ export function SignupFormDemo() {
           <Label htmlFor="course">Course</Label>
           <select
             id="course"
+            name="course"
+            aria-label="Select course"
             className="border rounded px-2 py-2 bg-[#27272A] text-gray-200 dark:text-white"
           >
             {courseOptions.map((option) => (
@@ -153,6 +218,7 @@ export function SignupFormDemo() {
           Sign Up
         </button>
       </form>
+      <Toaster />
 
       {/* Log In Link */}
       <div className="text-center mt-4">
