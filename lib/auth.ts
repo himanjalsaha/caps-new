@@ -27,7 +27,8 @@ export const NEXT_AUTH = {
                     throw new Error('No user found');
                 }
 
-                const isValidPassword = await bcrypt.compare(credentials.password, user.password);
+                const isValidPassword = await bcrypt.compare(credentials.password, user.password || "");
+
 
                 if (!isValidPassword) {
                     throw new Error('Invalid password');
