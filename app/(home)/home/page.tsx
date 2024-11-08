@@ -208,7 +208,7 @@ export default function HomeFeed() {
   )
 }
 
- export  function FeedItem({ post, onVote   }: { post: Post, onVote: (postId: string, voteType: 'upvote' | 'downvote') => void }) {
+ export  function FeedItem({ post, onVote   }: { post: Post, onVote?: (postId: string, voteType: 'upvote' | 'downvote') => void }) {
   const handleShare = async () => {
     try {
       const postLink = `${window.location.origin}/home/${post.id}`;
@@ -226,14 +226,14 @@ export default function HomeFeed() {
         <div className="flex flex-col items-center gap-1">
           <button 
             className={`text-gray-400 hover:text-purple-500 transition-colors ${post.userVote === 'upvote' ? 'text-purple-500' : ''}`}
-            onClick={() => onVote(post.id, 'upvote')}
+            onClick={() => onVote?.(post.id, 'upvote')}
           >
             <ChevronUp className="w-6 h-6" />
           </button>
           <span className="text-sm font-medium">{post.upvotes - post.downvotes}</span>
           <button 
             className={`text-gray-400 hover:text-purple-500 transition-colors ${post.userVote === 'downvote' ? 'text-purple-500' : ''}`}
-            onClick={() => onVote(post.id, 'downvote')}
+            onClick={() => onVote?.(post.id, 'downvote')}
           >
             <ChevronDown className="w-6 h-6" />
           </button>
