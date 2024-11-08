@@ -1,3 +1,4 @@
+"use  client"
 import { Post } from '@/types/next-auth';
 import { ChevronDown, ChevronUp, MessageCircle, Share2 } from 'lucide-react';
 import Link from 'next/link';
