@@ -1,39 +1,18 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { MessageCircle, ChevronUp, ChevronDown, Share2, ChartAreaIcon } from 'lucide-react'
-import CreatePostModal from '@/app/components/common/postQuestionModal'
+import { MessageCircle, Share2 } from 'lucide-react'
 import PostButton from '@/app/components/common/PostModalButton'
-import Link from 'next/link'
 import FeedItem from '@/app/components/common/Feeditem'
-
-type Post = {
-  id: string;
-  title: string;
-  description: string;
-  subject: string;
-  tags: string[];
-  imgUrl: string[];
-  userId: string;
-  userName: string;
-  userRole: string;
-  upvotes: number;
-  downvotes: number;
-  likes: string[];
-  createdAt: string;
-  updatedAt: string;
-  userVote?: 'upvote' | 'downvote' | null;
-  user: {
-    name: string | null;
-    email: string;
-  };
-}
+import { Post, Answer } from '@/types/next-auth'
+import { useSession, signIn } from 'next-auth/react'
 
 export default function HomeFeed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { data: session } = useSession();
 
   const topRef = useRef<HTMLDivElement>(null);
 
@@ -83,25 +62,36 @@ export default function HomeFeed() {
     setIsRefreshing(false);
   };
 
-
-
   const handleVote = async (postId: string, voteType: 'upvote' | 'downvote') => {
-    setPosts(currentPosts => currentPosts.map(post => {
-      if (post.id === postId) {
-        const isRemovingVote = post.userVote === voteType;
-        return {
-          ...post,
-          upvotes: voteType === 'upvote' 
-            ? (isRemovingVote ? post.upvotes - 1 : post.upvotes + 1) 
-            : post.upvotes,
-          downvotes: voteType === 'downvote' 
-            ? (isRemovingVote ? post.downvotes - 1 : post.downvotes + 1) 
-            : post.downvotes,
-          userVote: isRemovingVote ? null : voteType
-        };
-      }
-      return post;
-    }));
+    if (!session?.user?.id) {
+      alert('Please sign in to vote');
+      return;
+    }
+
+    setPosts((currentPosts) =>
+      currentPosts.map((post) => {
+        if (post.id === postId) {
+          const isRemovingVote = post.userVote === voteType;
+          return {
+            ...post,
+            upvotes:
+              voteType === 'upvote'
+                ? isRemovingVote
+                  ? post.upvotes - 1
+                  : post.upvotes + 1
+                : post.upvotes,
+            downvotes:
+              voteType === 'downvote'
+                ? isRemovingVote
+                  ? post.downvotes - 1
+                  : post.downvotes + 1
+                : post.downvotes,
+            userVote: isRemovingVote ? null : voteType,
+          };
+        }
+        return post;
+      })
+    );
 
     try {
       const response = await fetch(`/api/posts?id=${postId}`, {
@@ -111,6 +101,7 @@ export default function HomeFeed() {
         },
         body: JSON.stringify({
           voteType,
+          userId: session.user.id,
         }),
       });
 
@@ -119,10 +110,9 @@ export default function HomeFeed() {
       }
 
       const updatedPost = await response.json();
-      setPosts(currentPosts => 
-        currentPosts.map(post => post.id === postId ? { ...post, ...updatedPost } : post)
+      setPosts((currentPosts) =>
+        currentPosts.map((post) => (post.id === postId ? { ...post, ...updatedPost.post } : post))
       );
-
     } catch (err) {
       console.error('Failed to update vote:', err);
       fetchPosts();
@@ -130,15 +120,23 @@ export default function HomeFeed() {
   };
 
   const handleAddPost = async (newPost: Post) => {
-    setPosts(currentPosts => [newPost, ...currentPosts]);
-    
+    if (!session?.user?.id) {
+      alert('Please sign in to create a post');
+      return;
+    }
+
+    setPosts((currentPosts) => [newPost, ...currentPosts]);
+
     try {
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newPost),
+        body: JSON.stringify({
+          ...newPost,
+          userId: session.user.id,
+        }),
       });
 
       if (!response.ok) {
@@ -146,14 +144,71 @@ export default function HomeFeed() {
       }
 
       const addedPost = await response.json();
-      setPosts(currentPosts => 
-        currentPosts.map(post => post.id === newPost.id ? addedPost : post)
+      setPosts((currentPosts) =>
+        currentPosts.map((post) => (post.id === newPost.id ? addedPost : post))
       );
     } catch (err) {
       console.error('Failed to add post:', err);
-      setPosts(currentPosts => currentPosts.filter(post => post.id !== newPost.id));
+      setPosts((currentPosts) => currentPosts.filter((post) => post.id !== newPost.id));
     }
   };
+
+  const handleAnswerSubmit = async (postId: string, content: string) => {
+    if (!session?.user?.id) {
+      alert('Please sign in to submit an answer');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/answers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: content,
+          doubtPostId: postId,
+          userId: session.user.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit answer');
+      }
+
+      const newAnswer: Answer = await response.json();
+
+      setPosts((currentPosts) =>
+        currentPosts.map((post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              answers: [newAnswer, ...(post.answers || [])],
+            };
+          }
+          return post;
+        })
+      );
+    } catch (err) {
+      console.error('Failed to submit answer:', err);
+    }
+  };
+
+  if (!session) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#18191A]">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">Please sign in to view the feed</h1>
+          <button
+            onClick={() => signIn()}
+            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#18191A] text-gray-100">
@@ -163,7 +218,7 @@ export default function HomeFeed() {
           <div className="bg-[#242526] rounded-xl p-4 mb-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center font-semibold">
-                A
+                {session.user.name?.[0] || 'U'}
               </div>
               <input
                 type="text"
@@ -181,32 +236,26 @@ export default function HomeFeed() {
                 Answer
               </button>
               <div className="flex-1 flex items-center justify-center gap-2 text-gray-300 hover:bg-[#3A3B3C] py-1.5 rounded-lg transition-colors">
-                <PostButton 
-                  buttonText='post' 
-                  background={false} 
-                  onPostCreated={(newPost) => handleAddPost(newPost as Post)} 
-                />
+                <PostButton buttonText="post" background={false} onPostCreated={(newPost) => handleAddPost(newPost as Post)} />
               </div>
             </div>
           </div>
 
           {isLoading && <p className="text-center">Loading posts...</p>}
           {error && <p className="text-center text-red-500">{error}</p>}
-          
+
           <div className="space-y-4">
-            {posts.map(post => (
-              <FeedItem
-                key={post.id}
-                post={post}
+            {posts.map((post) => (
+              <FeedItem 
+                key={post.id} 
+                post={post} 
                 onVote={handleVote}
-            
+                onAnswerSubmit={handleAnswerSubmit}
               />
             ))}
           </div>
         </main>
       </div>
     </div>
-  )
+  );
 }
-
-

@@ -39,6 +39,7 @@ export type Post = {
     likes: string[];
     createdAt: string;
     updatedAt: string;
+    answers: Answer[];
     userVote?: 'upvote' | 'downvote' | null;
     user: {
       name: string | null;
@@ -47,3 +48,18 @@ export type Post = {
   
   }
   
+
+export  type Answer = {
+    id: string;
+    content: string;
+    userId: string;
+    doubtPostId: string;
+    upvotes: number;
+    downvotes: number;
+    createdAt: string;
+    updatedAt: string;
+    user: {
+      name: string | null;
+      email: string;
+    };
+  }
