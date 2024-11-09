@@ -6,7 +6,9 @@ import { Input } from "./ui/input";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
+import { FcGoogle } from "react-icons/fc";
+import { handleGoogleAuth } from "@/lib/googleAuthHandler";
 import { signIn } from "next-auth/react";
 
 const campusOptions = [
@@ -80,8 +82,22 @@ export function SignupFormDemo() {
       course: formData.get("course") as string
     };
 
+    if(data.password.length < 6){
+      toast.error('Password must be at least 6 characters long');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await axios.post("/api/signup", data);
+      const promise = axios.post("/api/signup", data);
+
+      toast.promise(promise, {
+        loading: "Signing up...",
+        success: "Account created successfully!",
+        error: "An unexpected error occurred during signup"
+      });
+
+      const response = await promise;
 
       if (response.status === 201) {
         const result = await signIn("credentials", {
@@ -113,6 +129,10 @@ export function SignupFormDemo() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSignIn = async () => {
+    await handleGoogleAuth();
   };
 
   return (
@@ -211,7 +231,16 @@ export function SignupFormDemo() {
           {isLoading ? "Signing Up..." : "Sign Up"}
         </button>
       </form>
-      <Toaster />
+
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        className="w-full flex items-center justify-center text-neutral-800 dark:text-neutral-200 py-2 rounded-md mb-4 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+      >
+        <FcGoogle className="w-5 h-5 mr-2" />
+        Sign up with Google
+      </button>
+      
 
       <div className="text-center mt-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">

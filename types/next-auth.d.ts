@@ -13,6 +13,7 @@ declare module "next-auth" {
       semester?: string
       role?  :string
     } & DefaultSession["user"]
+    error?: string
   }
 
   interface User {

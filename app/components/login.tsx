@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { cn } from "@/lib/utils";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
+import { FcGoogle } from "react-icons/fc";
+import { handleGoogleAuth } from "@/lib/googleAuthHandler";
+import { signIn } from "next-auth/react";
 
 export function LoginFormDemo() {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,11 +23,19 @@ export function LoginFormDemo() {
     const password = formData.get("password") as string;
 
     try {
-      const result = await signIn("credentials", {
+      const promise = signIn("credentials", {
         redirect: false,
         email,
         password,
       });
+
+      toast.promise(promise, {
+        loading: "Logging in...",
+        success: "Logged in successfully!",
+        error: "Invalid email or password"
+      });
+
+      const result = await promise;
 
       if (result?.error) {
         toast.error(result.error);
@@ -39,6 +49,10 @@ export function LoginFormDemo() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSignIn = async () => {
+    await handleGoogleAuth();
   };
 
   return ( 
@@ -71,6 +85,15 @@ export function LoginFormDemo() {
           </button>
         </form>
 
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          className="w-full flex items-center justify-center text-neutral-800 dark:text-neutral-200 py-2 rounded-md mb-4 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        >
+          <FcGoogle className="w-5 h-5 mr-2" />
+          Sign in with Google
+        </button>
+
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Don't have an account?{" "}
@@ -83,7 +106,6 @@ export function LoginFormDemo() {
           </p>
         </div>
       </div>
-      <Toaster />
     </div>
   );
 }

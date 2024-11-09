@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
-
+import { Toaster } from "sonner";
 
 
 export default function RootLayout({
@@ -18,7 +18,12 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <SessionProvider >
-   {children}
+          <Toaster
+            position="top-center"
+            duration={3000}
+            
+          />
+          {children}
         </SessionProvider>
      
       </body>

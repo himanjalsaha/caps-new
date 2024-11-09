@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        console.log('body-------', body);
         const { email, password, department, semester, campus, course } = body;
 
         // Validate all required fields
@@ -23,7 +22,7 @@ export async function POST(req: NextRequest) {
 
         if (existingUser) {
             return NextResponse.json(
-                { message: "User already exists" }, 
+                { message: "User already exists, please login" }, 
                 { status: 400 }
             );
         }
