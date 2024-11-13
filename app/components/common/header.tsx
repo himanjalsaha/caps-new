@@ -94,6 +94,15 @@ const Header = () => {
                 href="/notifications"
                 label="Notifications"
               />
+
+              <NavButton
+                icon={<MessageCircleQuestion className="w-5 h-5" />}
+                active={activeLink === "/ai"}
+                onClick={() => handleNavClick("/ai")}
+                href="/ai"
+                label="Ask AI"
+              />
+              
               <PostButton buttonText="Ask Your Doubt" />
               <Link
                 href="/profile"
