@@ -4,14 +4,15 @@ import { useSession, signOut } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Post } from "@/types/next-auth"
 import FeedItem from "@/app/components/common/Feeditem"
+import { useAuth } from "@/app/contexts/AuthContext"
 
 
 export default function UserProfile() {
   const { data: session } = useSession()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
 
-  
 
   useEffect(() => {
     fetchPosts()
@@ -64,8 +65,8 @@ export default function UserProfile() {
                 </div>
               )}
               <div>
-                <h1 className="text-2xl font-bold text-gray-100">{session.user.name || "User"}</h1>
-                <p className="text-gray-400">{session.user.email}</p>
+                <h1 className="text-2xl font-bold text-gray-100">{user?.name || "User"}</h1>
+                <p className="text-gray-400">{user?.email}</p>
               </div>
             </div>
           </div>
@@ -80,7 +81,7 @@ export default function UserProfile() {
                 </p>
                 <p className="text-gray-300">
                   <span className="text-gray-400 font-medium">Role: </span>
-                  {session.user.role || "User"}
+                  {user?.role || "User"}
                 </p>
                 <p className="text-gray-300">
                   <span className="text-gray-400 font-medium">Department: </span>

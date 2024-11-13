@@ -18,6 +18,7 @@ model User {
   password      String?
   emailVerified DateTime?
   image         String?
+  role          Role    @default(STUDENT)
   // Relations
   department    Department? @relation(fields: [departmentId], references: [id])
   departmentId  String?     @db.ObjectId
@@ -31,8 +32,14 @@ model User {
   accounts Account[]
   sessions Session[]
   doubtPosts DoubtPost[] @relation("UserDoubtPosts")
-
   Answer Answer[]
+
+  @@index([role])
+}
+
+enum Role {
+  TEACHER
+  STUDENT
 }
 
 model Account {

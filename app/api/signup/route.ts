@@ -15,10 +15,23 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // Check if email is from Christ University
+        if (!email.endsWith('.christuniversity.in')) {
+            return NextResponse.json(
+                { message: "Only Christ University email addresses are allowed" },
+                { status: 400 }
+            );
+        }
+
         // Check if the user already exists
         const existingUser = await prisma.user.findUnique({
             where: { email }
         });
+
+         // Determine role based on email structure (same logic as Google Sign-In)
+        const isTeacher = !email.split("@")[0].includes(".");
+        const role: "TEACHER" | "STUDENT" = isTeacher ? "TEACHER" : "STUDENT";
+
 
         if (existingUser) {
             return NextResponse.json(
@@ -59,6 +72,7 @@ export async function POST(req: NextRequest) {
             data: {
                 email,
                 password: hashedPassword,
+                role,
                 departmentId: userDepartment.id,
                 semesterId: userSemester.id,
                 campusId: userCampus.id,

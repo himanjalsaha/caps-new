@@ -51,6 +51,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           image: user.image,
+          role: user.role || "STUDENT",
           department: user.department?.name,
           campus: user.campus?.name,
           course: user.course?.name,
@@ -72,8 +73,9 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
       async signIn({ account, profile }) {
-        if (account?.provider === "google") {
-            if (!profile?.email?.endsWith('.christuniversity.in')) {
+      if (account?.provider === "google") {
+          const email = profile?.email || '';
+            if (!email?.endsWith('.christuniversity.in')) {
               return '/error?error=OnlyChristUniversity';
             }
             return true;
@@ -84,42 +86,57 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account, profile }) {
 		if (account?.provider === "google" && profile) {
 			const email = profile.email;
-			const name = profile.name;
+      const name = profile.name;
+      const image = profile.image || '';
 
+      // Check if email is from Christ University
 			if (!email?.endsWith('.christuniversity.in')) {
 				token.error = 'OnlyChristUniversity';
 				return token;
-			}
+      }
+
+       // Determine role based on email structure
+        const isTeacher = !email.split("@")[0].includes(".");
+        const role: "TEACHER" | "STUDENT" = isTeacher ? "TEACHER" : "STUDENT";
+      
+      // Check if user already exists
 			let existingUser = await prisma.user.findUnique({
 				where: { email }
 			});
+
+      // If user does not exist, create a new user
 			if (!existingUser) {
 				const newUser = await prisma.user.create({
 					data: {
 						email,
 						name,
-						image: profile.image,
-						password: '000000',
+						image,
+            password: 'google',
+            role,
 						departmentId: null,
 						campusId: null,
 						courseId: null,
 						semesterId: null
 					}
 				});
-			}
-        }
-      
-      
-
-            if (user) {
-                token.id = user.id;
-                token.email = user.email;
-                token.name = user.name;
-                token.image = user.image;
-                token.department = user.department;
-                token.campus = user.campus;
-                token.course = user.course;
-                token.semester = user.semester;
+      } else if (existingUser) {
+        // If user exists, update the user's role
+        await prisma.user.update({
+          where: { email },
+          data: { role }
+        });
+      }
+    }
+      if (user) {
+            token.id = user.id;
+            token.email = user.email;
+            token.role = user.role;
+            token.name = user.name;
+            token.image = user.image;
+            token.department = user.department;
+            token.campus = user.campus;
+            token.course = user.course;
+            token.semester = user.semester;
             }
             return token;
         },
@@ -127,7 +144,8 @@ export const authOptions: NextAuthOptions = {
         async session({ session, token }:any) {
             if (session.user) {
                 session.user.id = token.id as string;
-                session.user.email = token.email as string;
+              session.user.email = token.email as string;
+              session.user.role = token.role as string;
                 session.user.name = token.name as string;
                 session.user.image = token.image as string;
                 session.user.department = token.department as string;

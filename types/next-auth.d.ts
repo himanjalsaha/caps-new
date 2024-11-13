@@ -1,4 +1,4 @@
-import NextAuth, { DefaultSession } from "next-auth"
+import NextAuth, { DefaultSession, DefaultUser } from "next-auth"
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -6,21 +6,35 @@ declare module "next-auth" {
       id: string
       email: string
       name: string
-      image: string
+      image?: string
       department?: string
       campus?: string
       course?: string
       semester?: string
-      role?  :string
+      role: "TEACHER" | "STUDENT"
     } & DefaultSession["user"]
     error?: string
   }
 
-  interface User {
+  interface User extends DefaultUser {
     department?: string
     campus?: string
     course?: string
     semester?: string
+    role: "TEACHER" | "STUDENT"
+  }
+
+  interface JWT {
+    id?: string
+    email?: string
+    name?: string
+    image?: string
+    department?: string
+    campus?: string
+    course?: string
+    semester?: string
+    role?: "TEACHER" | "STUDENT"
+    error?: string
   }
 }
 

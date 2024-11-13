@@ -146,7 +146,7 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
               {session?.user?.name?.[0] || 'A'}
             </div>
             <div className="flex-1">
-              <h3 className="font-medium text-white">{session?.user?.name || 'Anonymous'}</h3>
+              <h3 className="font-medium text-white">{session?.user?.email || 'User'}</h3>
               <button className="text-sm text-blue-500 hover:text-blue-400 flex items-center gap-1">
                 {session?.user?.role || 'Student'}
                 <ChevronDown className="w-4 h-4" />

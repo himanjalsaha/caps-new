@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
+import { AuthProvider } from "./contexts/AuthContext";
 
 
 export default function RootLayout({
@@ -18,14 +19,14 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <SessionProvider >
+          <AuthProvider>
           <Toaster
             position="top-center"
             duration={3000}
-            
-          />
-          {children}
+            />
+            {children}
+          </AuthProvider>
         </SessionProvider>
-     
       </body>
     </html>
   );

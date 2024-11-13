@@ -72,6 +72,8 @@ export function SignupFormDemo() {
     e.preventDefault();
     setIsLoading(true);
 
+
+
     const formData = new FormData(e.currentTarget);
     const data = {
       email: formData.get("email") as string,
@@ -89,12 +91,19 @@ export function SignupFormDemo() {
     }
 
     try {
+
+      // Check if email is from Christ University
+      if (!data.email.endsWith(".christuniversity.in")) {
+        toast.error("Only Christ University email addresses are allowed");
+        setIsLoading(false);
+        return;
+      }
       const promise = axios.post("/api/signup", data);
 
       toast.promise(promise, {
         loading: "Signing up...",
         success: "Account created successfully!",
-        error: "An unexpected error occurred during signup"
+        error: "An unexpected error occurred during signup",
       });
 
       const response = await promise;
