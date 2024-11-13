@@ -27,7 +27,7 @@ type Post = {
 }
 
 async function getPost(id: string): Promise<{ post: Post }> {
-  const res = await fetch(`api/posts?id=${id}`)
+  const res = await fetch(`/api/posts?id=${id}`)
   if (!res.ok) {
     throw new Error('Failed to fetch post')
   }
