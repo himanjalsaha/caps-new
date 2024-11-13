@@ -6,6 +6,7 @@ import Header from "../components/common/header";
 import Sidebar from "../components/common/sidebar";
 import Rightsidebar from "../components/common/Rightsidebar";
 import { redirect } from "next/navigation"; // To handle redirection
+import Providers from "@/lib/providers";
 
 export default function Layout({
   children,
@@ -33,7 +34,10 @@ export default function Layout({
       <Header />
       <Sidebar />
       <Rightsidebar />
+      <Providers>
       {children}
+      </Providers>
+     
     </div>
   );
 }

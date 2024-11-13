@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { MessageCircle, Share2 } from 'lucide-react'
 import PostButton from '@/app/components/common/PostModalButton'
 import FeedItem from '@/app/components/common/Feeditem'
@@ -8,68 +8,83 @@ import { Post, Answer } from '@/types/next-auth'
 import { useSession, signIn } from 'next-auth/react'
 import AnswersModal from '@/app/components/common/answermodal'
 
-export default function HomeFeed() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const { data: session } = useSession();
+// Custom hook for data fetching
+function useFetch<T>(url: string) {
+  const [data, setData] = useState<T | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const topRef = useRef<HTMLDivElement>(null);
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error('Failed to fetch data')
+      }
+      const result = await response.json()
+      setData(result)
+      setIsLoading(false)
+    } catch (err) {
+      setError('Failed to load data. Please try again later.')
+      setIsLoading(false)
+    }
+  }, [url])
+
+
+
+  return { data, isLoading, error, refetch: fetchData }
+}
+
+export default function HomeFeed() {
+  const { data: session } = useSession()
+  const { data, isLoading, error, refetch } = useFetch<{ posts: Post[] }>('/api/posts')
+  const [posts, setPosts] = useState<Post[]>([])
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const topRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetchPosts();
+    if (data) {
+      setPosts(data.posts)
+    }
+  }, [data])
+
+  useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !isRefreshing) {
-          handleRefresh();
+          handleRefresh()
         }
       },
       { root: null, rootMargin: '0px', threshold: 1.0 }
-    );
+    )
 
     if (topRef.current) {
-      observer.observe(topRef.current);
+      observer.observe(topRef.current)
     }
 
     return () => {
       if (topRef.current) {
-        observer.unobserve(topRef.current);
+        observer.unobserve(topRef.current)
       }
-    };
-  }, [isRefreshing]);
-
-  const fetchPosts = async () => {
-    try {
-      const response = await fetch('/api/posts');
-      if (!response.ok) {
-        throw new Error('Failed to fetch posts');
-      }
-      const data = await response.json();
-      setPosts(data.posts);
-      setIsLoading(false);
-    } catch (err) {
-      setError('Failed to load posts. Please try again later.');
-      setIsLoading(false);
     }
-  };
+  }, [isRefreshing])
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchPosts();
-    setIsRefreshing(false);
-  };
+    setIsRefreshing(true)
+    await refetch()
+    setIsRefreshing(false)
+  }
 
   const handleVote = async (postId: string, voteType: 'upvote' | 'downvote') => {
     if (!session?.user?.id) {
-      alert('Please sign in to vote');
-      return;
+      alert('Please sign in to vote')
+      return
     }
 
     setPosts((currentPosts) =>
       currentPosts.map((post) => {
         if (post.id === postId) {
-          const isRemovingVote = post.userVote === voteType;
+          const isRemovingVote = post.userVote === voteType
           return {
             ...post,
             upvotes:
@@ -85,11 +100,11 @@ export default function HomeFeed() {
                   : post.downvotes + 1
                 : post.downvotes,
             userVote: isRemovingVote ? null : voteType,
-          };
+          }
         }
-        return post;
+        return post
       })
-    );
+    )
 
     try {
       const response = await fetch(`/api/posts?id=${postId}`, {
@@ -101,29 +116,29 @@ export default function HomeFeed() {
           voteType,
           userId: session.user.id,
         }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error('Failed to update vote');
+        throw new Error('Failed to update vote')
       }
 
-      const updatedPost = await response.json();
+      const updatedPost = await response.json()
       setPosts((currentPosts) =>
         currentPosts.map((post) => (post.id === postId ? { ...post, ...updatedPost.post } : post))
-      );
+      )
     } catch (err) {
-      console.error('Failed to update vote:', err);
-      fetchPosts();
+      console.error('Failed to update vote:', err)
+      refetch()
     }
-  };
+  }
 
   const handleAddPost = async (newPost: Post) => {
     if (!session?.user?.id) {
-      alert('Please sign in to create a post');
-      return;
+      alert('Please sign in to create a post')
+      return
     }
 
-    setPosts((currentPosts) => [newPost, ...currentPosts]);
+    setPosts((currentPosts) => [newPost, ...currentPosts])
 
     try {
       const response = await fetch('/api/posts', {
@@ -135,26 +150,26 @@ export default function HomeFeed() {
           ...newPost,
           userId: session.user.id,
         }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error('Failed to add post');
+        throw new Error('Failed to add post')
       }
 
-      const addedPost = await response.json();
+      const addedPost = await response.json()
       setPosts((currentPosts) =>
         currentPosts.map((post) => (post.id === newPost.id ? addedPost : post))
-      );
+      )
     } catch (err) {
-      console.error('Failed to add post:', err);
-      setPosts((currentPosts) => currentPosts.filter((post) => post.id !== newPost.id));
+      console.error('Failed to add post:', err)
+      setPosts((currentPosts) => currentPosts.filter((post) => post.id !== newPost.id))
     }
-  };
+  }
 
   const handleAnswerSubmit = async (postId: string, content: string) => {
     if (!session?.user?.id) {
-      alert('Please sign in to submit an answer');
-      return;
+      alert('Please sign in to submit an answer')
+      return
     }
 
     try {
@@ -168,13 +183,13 @@ export default function HomeFeed() {
           doubtPostId: postId,
           userId: session.user.id,
         }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error('Failed to submit answer');
+        throw new Error('Failed to submit answer')
       }
 
-      const newAnswer: Answer = await response.json();
+      const newAnswer: Answer = await response.json()
 
       setPosts((currentPosts) =>
         currentPosts.map((post) => {
@@ -182,16 +197,16 @@ export default function HomeFeed() {
             return {
               ...post,
               answers: [newAnswer, ...(post.answers || [])],
-            };
+            }
           }
-          return post;
+          return post
         })
-      );
+      )
     } catch (err) {
-      console.error('Failed to submit answer:', err);
-      throw err;
+      console.error('Failed to submit answer:', err)
+      throw err
     }
-  };
+  }
 
   if (!session) {
     return (
@@ -206,7 +221,7 @@ export default function HomeFeed() {
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -258,5 +273,5 @@ export default function HomeFeed() {
         </main>
       </div>
     </div>
-  );
+  )
 }

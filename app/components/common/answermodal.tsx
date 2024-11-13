@@ -1,7 +1,11 @@
+'use client'
+
 import { useState } from 'react'
+import { MessageCircle } from 'lucide-react'
 import axios from 'axios'
 import Modal from './modal'
 import { Answer } from '@/types/next-auth'
+import { useQuery } from '@tanstack/react-query'
 
 interface AnswersModalProps {
   postId: string
@@ -9,32 +13,18 @@ interface AnswersModalProps {
 
 export default function AnswersModal({ postId }: AnswersModalProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [answers, setAnswers] = useState<Answer[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const openModal = () => {
-    setIsModalOpen(true)
-    fetchAnswers()
-  }
+  const { data: answers, isLoading, error } = useQuery<Answer[]>({
+    queryKey: ['answers', postId],
+    queryFn: async () => {
+      const response = await axios.get(`/api/answers?doubtPostId=${postId}`)
+      return Array.isArray(response.data) ? response.data : []
+    },
+    enabled: isModalOpen,
+  })
 
+  const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
-
-  const fetchAnswers = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const response = await axios.get(`/api/answers?doubtPostId=${postId}`, {
-        params: { doubtPostId: postId }
-      })
-      setAnswers(Array.isArray(response.data) ? response.data : [])
-    } catch (err) {
-      setError('Failed to load answers. Please try again.')
-      console.error('Error fetching answers:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   return (
     <>
@@ -42,6 +32,7 @@ export default function AnswersModal({ postId }: AnswersModalProps) {
         onClick={openModal}
         className="flex items-center justify-center gap-2 text-gray-300 hover:bg-[#3A3B3C] py-2 px-4 rounded-lg transition-colors"
       >
+        <MessageCircle className="w-5 h-5" />
         View Answers
       </button>
 
@@ -49,16 +40,16 @@ export default function AnswersModal({ postId }: AnswersModalProps) {
         {isLoading ? (
           <p className="text-center text-gray-400">Loading answers...</p>
         ) : error ? (
-          <p className="text-center text-red-500">{error}</p>
+          <p className="text-center text-red-500">Failed to load answers. Please try again.</p>
         ) : (
-          <div className="space-y-4">
-            {answers.length > 0 ? (
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {answers && answers.length > 0 ? (
               answers.map((answer: Answer) => (
                 <div key={answer.id} className="bg-[#3A3B3C] rounded-lg p-4">
                   <p className="text-gray-300 mb-2">{answer.content}</p>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center font-semibold text-xs">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center font-semibold text-xs text-white">
                         {answer.user?.name?.[0]?.toUpperCase() || answer.user?.email?.[0]?.toUpperCase() || 'A'}
                       </div>
                       <p className="font-medium text-gray-400">{answer.user?.name || answer.user?.email || 'Anonymous'}</p>
