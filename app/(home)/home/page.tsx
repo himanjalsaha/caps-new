@@ -6,6 +6,7 @@ import PostButton from '@/app/components/common/PostModalButton'
 import FeedItem from '@/app/components/common/Feeditem'
 import { Post, Answer } from '@/types/next-auth'
 import { useSession, signIn } from 'next-auth/react'
+import AnswersModal from '@/app/components/common/answermodal'
 
 export default function HomeFeed() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -18,9 +19,6 @@ export default function HomeFeed() {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
-
-  useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !isRefreshing) {
@@ -160,7 +158,7 @@ export default function HomeFeed() {
     }
 
     try {
-      const response = await fetch('/api/answers', {
+      const response = await fetch(`/api/answers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -191,6 +189,7 @@ export default function HomeFeed() {
       );
     } catch (err) {
       console.error('Failed to submit answer:', err);
+      throw err;
     }
   };
 
@@ -246,12 +245,14 @@ export default function HomeFeed() {
 
           <div className="space-y-4">
             {posts.map((post) => (
-              <FeedItem 
-                key={post.id} 
-                post={post} 
-                onVote={handleVote}
-                onAnswerSubmit={handleAnswerSubmit}
-              />
+              <div key={post.id} className="bg-[#242526] rounded-xl p-4 mb-4">
+                <FeedItem 
+                  post={post} 
+                  onVote={handleVote}
+                  onAnswerSubmit={handleAnswerSubmit}
+                />
+                <AnswersModal postId={post.id} />
+              </div>
             ))}
           </div>
         </main>
