@@ -1,4 +1,7 @@
 import NextAuth, { DefaultSession, DefaultUser } from "next-auth"
+import { Server as NetServer, Socket } from 'net'
+import { NextApiResponse } from 'next'
+import { Server as SocketIOServer } from 'socket.io'
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -78,4 +81,12 @@ export  type Answer = {
       name: string | null;
       email: string;
     };
+  }
+
+  export type NextApiResponseServerIO = NextApiResponse & {
+    socket: Socket & {
+      server: NetServer & {
+        io: SocketIOServer
+      }
+    }
   }
