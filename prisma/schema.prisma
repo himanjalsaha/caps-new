@@ -110,6 +110,7 @@ model DoubtPost {
   subject     String
   tags        String[]
   imgUrl      String[]
+  likedby     String[]
   userId      String    @db.ObjectId
   user        User      @relation("UserDoubtPosts", fields: [userId], references: [id])
   userName    String

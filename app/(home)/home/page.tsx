@@ -14,7 +14,8 @@ function useFetch<T>(url: string) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchData = useCallback(async () => {
+  const fetchData = async () => {
+    setIsLoading(true)
     try {
       const response = await fetch(url)
       if (!response.ok) {
@@ -22,25 +23,24 @@ function useFetch<T>(url: string) {
       }
       const result = await response.json()
       setData(result)
-      setIsLoading(false)
     } catch (err) {
       setError('Failed to load data. Please try again later.')
+    } finally {
       setIsLoading(false)
     }
-  }, [url])
+  }
 
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+  }, [url])
 
   return { data, isLoading, error, refetch: fetchData }
 }
 
 export default function HomeFeed() {
   const { data: session } = useSession()
-  const { data, isLoading, error, refetch } = useFetch<{ posts: Post[] }>('/api/posts')
+  const { data, isLoading, error , refetch } = useFetch<{ posts: Post[] }>('/api/posts')
   const [posts, setPosts] = useState<Post[]>([])
-  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const topRef = useRef<HTMLDivElement>(null)
 
@@ -49,33 +49,6 @@ export default function HomeFeed() {
       setPosts(data.posts)
     }
   }, [data])
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isRefreshing) {
-          handleRefresh()
-        }
-      },
-      { root: null, rootMargin: '0px', threshold: 1.0 }
-    )
-
-    if (topRef.current) {
-      observer.observe(topRef.current)
-    }
-
-    return () => {
-      if (topRef.current) {
-        observer.unobserve(topRef.current)
-      }
-    }
-  }, [isRefreshing])
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true)
-    await refetch()
-    setIsRefreshing(false)
-  }
 
   const handleVote = async (postId: string, voteType: 'upvote' | 'downvote') => {
     if (!session?.user?.id) {
@@ -130,7 +103,6 @@ export default function HomeFeed() {
       )
     } catch (err) {
       console.error('Failed to update vote:', err)
-      refetch()
     }
   }
 
@@ -229,8 +201,16 @@ export default function HomeFeed() {
   return (
     <div className="min-h-screen bg-[#18191A] text-gray-100">
       <div ref={topRef} />
+  
       <div className="pt-14 flex">
+   
         <main className="flex-1 lg:ml-60 max-w-3xl mx-auto p-4">
+        <button
+            onClick={refetch}
+            className="px-4 py-2 mb-4 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+          >
+            Refresh Feed
+          </button>
           <div className="bg-[#242526] rounded-xl p-4 mb-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center font-semibold">

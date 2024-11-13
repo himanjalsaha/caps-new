@@ -2,18 +2,18 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronDown, ChevronUp, MessageCircle, Share2 } from 'lucide-react'
+import { ChevronUp, MessageCircle, Share2, ThumbsUp } from 'lucide-react'
 import { Post, Answer } from '@/types/next-auth'
 
 interface FeedItemProps {
   post: Post
-  onVote?: (postId: string, voteType: 'upvote' | 'downvote') => void
+  onVote?: (postId: string, voteType: 'upvote') => void
   onAnswerSubmit?: (postId: string, content: string) => Promise<void>
 }
 
 function AnswerItem({ answer }: { answer: Answer }) {
   return (
-    <div className="bg-[#3A3B3C] rounded-lg p-4">
+    <div className="bg-[#3A3B3C] rounded-lg p-4 mt-2">
       <p className="text-gray-300 mb-2">{answer.content}</p>
       <div className="flex items-center justify-between text-sm">
         <div className="flex items-center gap-2">
@@ -34,6 +34,7 @@ export default function FeedItem({ post, onVote, onAnswerSubmit }: FeedItemProps
   const [showAnswers, setShowAnswers] = useState(false)
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false)
   const [answerError, setAnswerError] = useState<string | null>(null)
+  const [isUpvoted, setIsUpvoted] = useState(post.userVote === 'upvote')
 
   const handleShare = async () => {
     try {
@@ -62,68 +63,75 @@ export default function FeedItem({ post, onVote, onAnswerSubmit }: FeedItemProps
     }
   }
 
+  const handleUpvote = () => {
+    if (onVote) {
+      onVote(post.id, 'upvote')
+      setIsUpvoted(!isUpvoted)
+    }
+  }
+
   return (
-    <div className="bg-[#242526] rounded-xl p-4 mb-4 hover:bg-[#2D2E2F] transition-colors">
+    <div className="bg-[#242526] rounded-xl p-6 mb-4 hover:bg-[#2D2E2F] transition-colors shadow-lg">
       <div className="flex items-start gap-4">
-        <div className="flex flex-col items-center gap-1">
-          <button
-            className={`text-gray-400 hover:text-purple-500 transition-colors ${post.userVote === 'upvote' ? 'text-purple-500' : ''}`}
-            onClick={() => onVote?.(post.id, 'upvote')}
-            disabled={post.userVote === 'upvote'}
-            aria-label="Upvote"
-          >
-            <ChevronUp className="w-6 h-6" />
-          </button>
-          <span className="text-sm font-medium">{post.upvotes - post.downvotes}</span>
-          <button
-            className={`text-gray-400 hover:text-purple-500 transition-colors ${post.userVote === 'downvote' ? 'text-purple-500' : ''}`}
-            onClick={() => onVote?.(post.id, 'downvote')}
-            disabled={post.userVote === 'downvote'}
-            aria-label="Downvote"
-          >
-            <ChevronDown className="w-6 h-6" />
-          </button>
-        </div>
+      
 
         <div className="flex-1">
           <Link href={`/home/${post.id}`} className="block">
-            <h2 className="text-lg font-semibold mb-2 hover:text-purple-400 cursor-pointer">{post.title}</h2>
+            <h2 className="text-xl font-semibold mb-3 hover:text-purple-400 cursor-pointer transition-colors">
+              {post.title}
+            </h2>
           </Link>
-          <p className="text-gray-300 mb-3">
-            {post.description.length > 100 ? `${post.description.slice(0, 100)}...` : post.description}
+          <p className="text-gray-300 mb-4 text-base leading-relaxed">
+            {post.description.length > 150 ? `${post.description.slice(0, 150)}...` : post.description}
           </p>
 
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap gap-2 mb-4">
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                className="text-xs px-2 py-1 rounded-full bg-[#3A3B3C] text-gray-300 hover:bg-[#4E4F50] cursor-pointer"
+                className="text-xs px-3 py-1 rounded-full bg-[#3A3B3C] text-gray-300 hover:bg-[#4E4F50] cursor-pointer transition-colors"
               >
                 {tag}
               </span>
             ))}
           </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center font-semibold">
+          <div className="flex items-center justify-between text-sm mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center font-semibold text-white">
                 {post.userName[0].toUpperCase()}
               </div>
               <div>
-                <p className="font-medium hover:text-purple-400 cursor-pointer">{post.userName}</p>
+                <p className="font-medium text-purple-400 hover:text-purple-300 cursor-pointer transition-colors">
+                  {post.userName}
+                </p>
                 <p className="text-gray-400 text-xs">{post.userRole}</p>
               </div>
             </div>
             <div className="flex items-center gap-4 text-gray-400">
-              <span>{post.likes.length} likes</span>
+              <span>{post.upvotes} likes</span>
               <span>{new Date(post.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
 
-          <div className="flex items-center justify-between space-x-6 mt-3">
+          <div className="flex items-center justify-between space-x-4">
+          <div className="flex flex-1 flex-row items-center gap-2">
+          <button
+            className={`text-gray-400 hover:text-purple-500 transition-colors ${
+              isUpvoted ? 'text-purple-500' : ''
+            } focus:outline-none group`}
+            onClick={handleUpvote}
+            aria-label="Upvote"
+          >
+            <ThumbsUp className={`w-5 h-5 transform group-hover:scale-110 transition-transform ${
+              isUpvoted ? 'animate-bounce' : ''
+            }`} />
+          </button>
+          <span className="text-lg font-bold text-purple-500">{post.upvotes} likes</span>
+        </div>
             <button
               onClick={handleShare}
-              className="flex-1 flex items-center justify-center gap-2 text-gray-300 hover:bg-[#3A3B3C] py-2 rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 text-gray-300 hover:bg-[#3A3B3C] py-2 px-4 rounded-lg transition-colors"
               aria-label="Share post"
             >
               <Share2 className="w-5 h-5" />
@@ -132,7 +140,7 @@ export default function FeedItem({ post, onVote, onAnswerSubmit }: FeedItemProps
 
             <button
               onClick={() => setShowAnswerForm(!showAnswerForm)}
-              className="flex-1 flex items-center justify-center gap-2 text-gray-300 hover:bg-[#3A3B3C] py-2 rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 text-gray-300 hover:bg-[#3A3B3C] py-2 px-4 rounded-lg transition-colors"
               aria-label="Answer post"
             >
               <MessageCircle className="w-5 h-5" />
@@ -146,7 +154,7 @@ export default function FeedItem({ post, onVote, onAnswerSubmit }: FeedItemProps
                 value={answerContent}
                 onChange={(e) => setAnswerContent(e.target.value)}
                 placeholder="Write your answer here..."
-                className="w-full bg-[#3A3B3C] text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full bg-[#3A3B3C] text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                 rows={4}
                 aria-label="Answer content"
               />
@@ -161,10 +169,7 @@ export default function FeedItem({ post, onVote, onAnswerSubmit }: FeedItemProps
             </div>
           )}
 
-          <div className="mt-4">
-        
-          </div>
-
+      
         </div>
       </div>
     </div>

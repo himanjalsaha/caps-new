@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { X, ChevronDown, Globe2, Image, Link2, FileText, Users, BookOpen, Upload } from 'lucide-react'
+import { X, ChevronDown, Globe2, Image, Link2, FileText, Users, BookOpen, Bold, Italic, Underline } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { storage } from '../../firebase' // Ensure this path is correct
@@ -22,6 +22,7 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null)
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { data: session } = useSession()
   const router = useRouter()
 
@@ -101,6 +102,35 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
       }
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const applyTextStyle = (style: string) => {
+    if (textareaRef.current) {
+      const start = textareaRef.current.selectionStart
+      const end = textareaRef.current.selectionEnd
+      const selectedText = postText.substring(start, end)
+      const beforeText = postText.substring(0, start)
+      const afterText = postText.substring(end)
+
+      let styledText = ''
+      switch (style) {
+        case 'bold':
+          styledText = `**${selectedText}**`
+          break
+        case 'italic':
+          styledText = `*${selectedText}*`
+          break
+        case 'underline':
+          styledText = `__${selectedText}__`
+          break
+        default:
+          styledText = selectedText
+      }
+
+      setPostText(beforeText + styledText + afterText)
+      textareaRef.current.focus()
+      textareaRef.current.setSelectionRange(start + 2, end + 2)
     }
   }
 
@@ -189,8 +219,21 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
             />
           </div>
 
+          <div className="mb-2 flex gap-2">
+            <button type="button" onClick={() => applyTextStyle('bold')} className="p-2 bg-[#3A3B3C] rounded hover:bg-[#4A4B4C]">
+              <Bold className="w-4 h-4" />
+            </button>
+            <button type="button" onClick={() => applyTextStyle('italic')} className="p-2 bg-[#3A3B3C] rounded hover:bg-[#4A4B4C]">
+              <Italic className="w-4 h-4" />
+            </button>
+            <button type="button" onClick={() => applyTextStyle('underline')} className="p-2 bg-[#3A3B3C] rounded hover:bg-[#4A4B4C]">
+              <Underline className="w-4 h-4" />
+            </button>
+          </div>
+
           <div className="mb-4">
             <textarea
+              ref={textareaRef}
               value={postText}
               onChange={(e) => setPostText(e.target.value)}
               placeholder={
@@ -198,7 +241,7 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
                   ? "What's your question? Be specific to help others give you better answers..."
                   : "Share your knowledge, resources, or start a discussion..."
               }
-              className="w-full min-h-[200px] bg-transparent text-white placeholder-gray-400 text-lg resize-none focus:outline-none"
+              className="w-full min-h-[200px] bg-[#3A3B3C] text-white placeholder-gray-400 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-3"
             />
           </div>
 

@@ -16,12 +16,12 @@ export async function POST(req: NextRequest) {
         }
 
         // Check if email is from Christ University
-        if (!email.endsWith('.christuniversity.in')) {
-            return NextResponse.json(
-                { message: "Only Christ University email addresses are allowed" },
-                { status: 400 }
-            );
-        }
+        // if (!email.endsWith('.christuniversity.in')) {
+        //     return NextResponse.json(
+        //         { message: "Only Christ University email addresses are allowed" },
+        //         { status: 400 }
+        //     );
+        // }
 
         // Check if the user already exists
         const existingUser = await prisma.user.findUnique({

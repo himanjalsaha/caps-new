@@ -93,11 +93,11 @@ export function SignupFormDemo() {
     try {
 
       // Check if email is from Christ University
-      if (!data.email.endsWith(".christuniversity.in")) {
-        toast.error("Only Christ University email addresses are allowed");
-        setIsLoading(false);
-        return;
-      }
+      // if (!data.email.endsWith(".christuniversity.in")) {
+      //   toast.error("Only Christ University email addresses are allowed");
+      //   setIsLoading(false);
+      //   return;
+      // }
       const promise = axios.post("/api/signup", data);
 
       toast.promise(promise, {
@@ -156,7 +156,7 @@ export function SignupFormDemo() {
       <form className="my-8" onSubmit={handleSubmit}>
         <LabelInputContainer className="mb-4">
           <Label htmlFor="email">Email Address</Label>
-          <Input id="email" name="email" placeholder="youremail@example.com" type="email" required />
+          <Input id="email" name="email"  placeholder="youremail@example.com" type="email" required />
         </LabelInputContainer>
 
         <LabelInputContainer className="mb-4">

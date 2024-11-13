@@ -46,6 +46,7 @@ export type Post = {
     subject: string;
     tags: string[];
     imgUrl: string[];
+    likedby: string[];
     userId: string;
     userName: string;
     userRole: string;
