@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
-export default function ErrorPage() {
+function ErrorPageContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const error = searchParams.get("error");
@@ -23,4 +23,12 @@ export default function ErrorPage() {
     }, [error, router]);
 
     return null; // This page doesn't need to render anything
+}
+
+export default function ErrorPage() {
+    return (
+        <Suspense fallback={null}>
+            <ErrorPageContent />
+        </Suspense>
+    );
 }
