@@ -8,7 +8,9 @@ import {
   Menu,
   X,
   MessageCircleMore,
+  LogOut,
 } from "lucide-react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 import React, { useState } from "react";
 
@@ -21,8 +23,8 @@ const Sidebar = () => {
   return (
     <div>
       {" "}
-      <aside className="hidden lg:block w-60 fixed h-[calc(100vh)] border-r border-[#3E4042] p-4 left-[10px]">
-        <div className="my-12">
+      <aside className=" flex flex-col justify-between h-[100vh]  w-60 fixed  border-r border-[#3E4042] p-4 left-[10px]">
+        <div className="my-[60px]">
           <NavButton
             icon={<Home className="w-5 h-5" />}
             active={activeLink === "/home"}
@@ -44,6 +46,15 @@ const Sidebar = () => {
             href="/chatroom"
             label="Chat Room"
           />
+        </div>
+        <div className="mb-[20px]">
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="flex items-center justify-center gap-2 p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+          >
+            <LogOut size={24} />
+            <span>Logout</span>
+          </button>
         </div>
       </aside>
     </div>
