@@ -4,10 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { Send, Smile, Paperclip, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { io, Socket } from "socket.io-client";
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 // import { ScrollArea } from "@/components/ui/scroll-area"
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
+
+// Create socket instance outside component to persist connection across renders
+const socket: Socket = io("http://localhost:3000", {
+  path: "/api/chat/socket",
+  transports: ["websocket"],
+});
 
 type Chat = {
   id: number;
@@ -90,6 +97,43 @@ export default function ChatBox() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // Connect to socket server and set up event listeners
+    socket.on("connect", () => {
+      console.log("Connected to server", socket.id);
+    });
+
+    socket.on("chat message", (newMessage: Message) => {
+      if (selectedChat) {
+        setMessages((prev) => ({
+          ...prev,
+          [selectedChat.id]: [...(prev[selectedChat.id] || []), newMessage],
+        }));
+      }
+    });
+
+    socket.on("chat history", (chatHistory: Message[]) => {
+      if (selectedChat) {
+        setMessages((prev) => ({
+          ...prev,
+          [selectedChat.id]: chatHistory,
+        }));
+      }
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected from server");
+    });
+
+    // Cleanup on component unmount
+    return () => {
+      socket.off("connect");
+      socket.off("chat message");
+      socket.off("chat history");
+      socket.off("disconnect");
+    };
+  }, [selectedChat]);
+
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
         emojiPickerRef.current &&
@@ -114,33 +158,21 @@ export default function ChatBox() {
 
   const handleSendMessage = () => {
     if ((inputMessage.trim() || selectedFile) && selectedChat) {
-      const newMessage = {
+      const newMessage: Message = {
         text: inputMessage,
-        sender: "user" as const,
+        sender: "user",
         file: selectedFile || undefined,
       };
-      setMessages((prev) => ({
-        ...prev,
-        [selectedChat.id]: [...(prev[selectedChat.id] || []), newMessage],
-      }));
+
+      // Emit message to server
+      socket.emit("chat message", {
+        message: inputMessage,
+        senderId: "currentUserId", // Replace with actual user ID
+        receiverId: selectedChat.id.toString(),
+      });
+
       setInputMessage("");
       setSelectedFile(null);
-
-      // Simulated bot response
-      setTimeout(() => {
-        setMessages((prev) => ({
-          ...prev,
-          [selectedChat.id]: [
-            ...(prev[selectedChat.id] || []),
-            {
-              text: `You said: ${inputMessage}${
-                selectedFile ? ` and uploaded a file: ${selectedFile.name}` : ""
-              }`,
-              sender: "bot",
-            },
-          ],
-        }));
-      }, 1000);
     }
   };
 
