@@ -23,7 +23,7 @@ const Sidebar = () => {
   return (
     <div>
       {" "}
-      <aside className=" flex flex-col justify-between h-[100vh]  w-60 fixed  border-r border-[#3E4042] p-4 left-[10px]">
+      <aside className=" flex flex-col md:block hidden  justify-between h-[100vh]  w-60 fixed  border-r border-[#3E4042] p-4 left-[10px]">
         <div className="my-[60px]">
           <NavButton
             icon={<Home className="w-5 h-5" />}
