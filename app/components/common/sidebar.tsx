@@ -13,6 +13,7 @@ import {
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import React, { useState } from "react";
+import { AINavButton } from "../ui/AINavButton";
 
 const Sidebar = () => {
   const [activeLink, setActiveLink] = useState<string>("/");
@@ -46,11 +47,10 @@ const Sidebar = () => {
             href="/chatroom"
             label="Chat Room"
           />
-          <NavButton
-            icon={<MessageCircleQuestion className="w-5 h-5" />}
+          <AINavButton
             active={activeLink === "/ai"}
             onClick={() => handleNavClick("/ai")}
-            label="Ask AI"
+            label="Ask AI(Beta)"
             href="/ai"
           />
 
