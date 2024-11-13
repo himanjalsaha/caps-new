@@ -46,6 +46,14 @@ const Sidebar = () => {
             href="/chatroom"
             label="Chat Room"
           />
+          <NavButton
+            icon={<MessageCircleQuestion className="w-5 h-5" />}
+            active={activeLink === "/ai"}
+            onClick={() => handleNavClick("/ai")}
+            label="Ask AI"
+            href="/ai"
+          />
+
         </div>
         <div className="mb-[20px]">
           <button
