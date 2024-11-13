@@ -134,3 +134,11 @@ model Answer {
   @@index([doubtPostId])
   @@index([userId])
 }
+
+model ChatMessage {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  message    String
+  senderId   String   // or reference a User model if you have one
+  receiverId String   // or reference a User model if you have one
+  createdAt  DateTime @default(now())
+}

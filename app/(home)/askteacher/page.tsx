@@ -1,47 +1,82 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Search, ChevronDown, Send, X, BookOpen, Users, FileText, Image, Link2, Globe2 } from 'lucide-react'
+import { useState } from "react";
+import {
+  Search,
+  ChevronDown,
+  Send,
+  X,
+  BookOpen,
+  Users,
+  FileText,
+  Image,
+  Link2,
+  Globe2,
+} from "lucide-react";
 
- function PostDoubtPage() {
-    type Teacher = {
-        id: number;
-        name: string;
-        subject: string;
-        avatar: string;
-    } | null;
-    
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher>(null)
-  const [doubt, setDoubt] = useState('')
-  const [doubtType, setDoubtType] = useState('Question')
-  const [visibility, setVisibility] = useState('Everyone')
+function PostDoubtPage() {
+  type Teacher = {
+    id: number;
+    name: string;
+    subject: string;
+    avatar: string;
+  } | null;
+
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher>(null);
+  const [doubt, setDoubt] = useState("");
+  const [doubtType, setDoubtType] = useState("Question");
+  const [visibility, setVisibility] = useState("Everyone");
 
   const teachers = [
-    { id: 1, name: 'Dr. Emily Johnson', subject: 'Computer Science', avatar: '/placeholder.svg?height=40&width=40' },
-    { id: 2, name: 'Prof. Michael Lee', subject: 'Mathematics', avatar: '/placeholder.svg?height=40&width=40' },
-    { id: 3, name: 'Dr. Sarah Parker', subject: 'Physics', avatar: '/placeholder.svg?height=40&width=40' },
-    { id: 4, name: 'Prof. David Brown', subject: 'Chemistry', avatar: '/placeholder.svg?height=40&width=40' },
-  ]
+    {
+      id: 1,
+      name: "Dr. Emily Johnson",
+      subject: "Computer Science",
+      avatar: "/placeholder.svg?height=40&width=40",
+    },
+    {
+      id: 2,
+      name: "Prof. Michael Lee",
+      subject: "Mathematics",
+      avatar: "/placeholder.svg?height=40&width=40",
+    },
+    {
+      id: 3,
+      name: "Dr. Sarah Parker",
+      subject: "Physics",
+      avatar: "/placeholder.svg?height=40&width=40",
+    },
+    {
+      id: 4,
+      name: "Prof. David Brown",
+      subject: "Chemistry",
+      avatar: "/placeholder.svg?height=40&width=40",
+    },
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log('Submitted:', { teacher: selectedTeacher, doubt, doubtType, visibility })
+    e.preventDefault();
+    console.log("Submitted:", {
+      teacher: selectedTeacher,
+      doubt,
+      doubtType,
+      visibility,
+    });
     // Reset form
-    setSelectedTeacher(null)
-    setDoubt('')
-    setDoubtType('Question')
-    setVisibility('Everyone')
-  }
+    setSelectedTeacher(null);
+    setDoubt("");
+    setDoubtType("Question");
+    setVisibility("Everyone");
+  };
 
   return (
     <div className="min-h-screen flex-1  bg-[#18191A]  text-gray-100 p-4">
-         <div className="pt-14 flex"></div>
+      <div className="pt-14 flex"></div>
       <div className="max-w-2xl mx-auto bg-[#242526] rounded-xl shadow-xl">
         <div className="border-b border-[#3E4042] p-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Post a doubt to your teacher</h1>
-          
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-4 space-y-6">
           {/* User Info */}
           <div className="flex items-center gap-3 mb-4">
@@ -59,14 +94,22 @@ import { Search, ChevronDown, Send, X, BookOpen, Users, FileText, Image, Link2, 
 
           {/* Teacher Selection */}
           <div className="space-y-2">
-            <label htmlFor="teacher-select" className="block text-sm font-medium">
+            <label
+              htmlFor="teacher-select"
+              className="block text-sm font-medium"
+            >
               Select a Teacher
             </label>
             <div className="relative">
               <select
                 id="teacher-select"
-                value={selectedTeacher ? selectedTeacher.id : ''}
-                onChange={(e) => setSelectedTeacher(teachers.find(t => t.id === parseInt(e.target.value)) || null)}
+                value={selectedTeacher ? selectedTeacher.id : ""}
+                onChange={(e) =>
+                  setSelectedTeacher(
+                    teachers.find((t) => t.id === parseInt(e.target.value)) ||
+                      null
+                  )
+                }
                 className="block w-full bg-[#3A3B3C] border border-[#4E4F50] rounded-lg py-2 pl-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
                 required
               >
@@ -86,20 +129,20 @@ import { Search, ChevronDown, Send, X, BookOpen, Users, FileText, Image, Link2, 
             <DoubtTypeButton
               icon={<BookOpen className="w-4 h-4" />}
               label="Question"
-              active={doubtType === 'Question'}
-              onClick={() => setDoubtType('Question')}
+              active={doubtType === "Question"}
+              onClick={() => setDoubtType("Question")}
             />
             <DoubtTypeButton
               icon={<FileText className="w-4 h-4" />}
               label="Concept Clarification"
-              active={doubtType === 'Concept Clarification'}
-              onClick={() => setDoubtType('Concept Clarification')}
+              active={doubtType === "Concept Clarification"}
+              onClick={() => setDoubtType("Concept Clarification")}
             />
             <DoubtTypeButton
               icon={<Users className="w-4 h-4" />}
               label="Assignment Help"
-              active={doubtType === 'Assignment Help'}
-              onClick={() => setDoubtType('Assignment Help')}
+              active={doubtType === "Assignment Help"}
+              onClick={() => setDoubtType("Assignment Help")}
             />
           </div>
 
@@ -136,7 +179,11 @@ import { Search, ChevronDown, Send, X, BookOpen, Users, FileText, Image, Link2, 
               <button
                 type="button"
                 className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-300 hover:bg-[#3A3B3C] rounded-full transition-colors"
-                onClick={() => setVisibility(visibility === 'Everyone' ? 'Only Teacher' : 'Everyone')}
+                onClick={() =>
+                  setVisibility(
+                    visibility === "Everyone" ? "Only Teacher" : "Everyone"
+                  )
+                }
               >
                 <Globe2 className="w-4 h-4" />
                 {visibility}
@@ -154,29 +201,32 @@ import { Search, ChevronDown, Send, X, BookOpen, Users, FileText, Image, Link2, 
         </form>
       </div>
     </div>
-  )
+  );
 }
 
-function DoubtTypeButton({ icon, label, active, onClick }: {
-  icon: React.ReactNode
-  label: string
-  active: boolean
-  onClick: () => void
+function DoubtTypeButton({
+  icon,
+  label,
+  active,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  active: boolean;
+  onClick: () => void;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-        active
-          ? 'bg-blue-500 text-white'
-          : 'text-gray-300 hover:bg-[#3A3B3C]'
+        active ? "bg-blue-500 text-white" : "text-gray-300 hover:bg-[#3A3B3C]"
       }`}
     >
       {icon}
       {label}
     </button>
-  )
+  );
 }
 
-export default PostDoubtPage
+export default PostDoubtPage;
