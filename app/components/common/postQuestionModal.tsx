@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { storage } from '../../firebase' // Ensure this path is correct
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { useAuth } from '@/app/contexts/AuthContext'
 
 type ImagePreview = {
   file: File;
@@ -24,6 +25,7 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { data: session } = useSession()
+  const { user } = useAuth()
   const router = useRouter()
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +79,7 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
           subject: selectedCourse,
           tags: [selectedCourse],
           imgUrl: imageUrls,
-          userId: session.user.id,
+          userId: user?.id,
           visibility: visibility.toLowerCase(),
         }),
       })
@@ -173,7 +175,7 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
         <form onSubmit={handleSubmit} className="p-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-              {session?.user?.name?.[0] || 'A'}
+              {session?.user?.name?.[0] || 'U'}
             </div>
             <div className="flex-1">
               <h3 className="font-medium text-white">{session?.user?.email || 'User'}</h3>

@@ -4,8 +4,11 @@ import Logo from "./logo";
 import React, { useState } from "react";
 import Link from "next/link";
 import PostButton from "./PostModalButton";
+import { AINavButton } from "../ui/AINavButton";
+import { useSession } from "next-auth/react";
 
 const Header = () => {
+  const { data: session } = useSession()
   const [activeLink, setActiveLink] = useState<string>("/");
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
 
@@ -40,6 +43,14 @@ const Header = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
+
+          <AINavButton
+            active={activeLink === "/ai"}
+            onClick={() => handleNavClick("/ai")}
+            label="Ask AI(Beta)"
+            href="/ai"
+          />
+          
           <PostButton buttonText="Ask Question" />
           <NavButton
             icon={<Bell className="w-5 h-5" />}
@@ -51,7 +62,7 @@ const Header = () => {
             href="/profile"
             className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center font-semibold"
           >
-            A
+            {session?.user?.name?.[0] || 'U'}
           </Link>
         </div>
       </div>
@@ -102,7 +113,7 @@ const Header = () => {
                 href="/ai"
                 label="Ask AI"
               />
-              
+
               <PostButton buttonText="Ask Your Doubt" />
               <Link
                 href="/profile"

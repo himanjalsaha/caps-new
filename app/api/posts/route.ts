@@ -35,7 +35,7 @@ export async function POST(request: Request) {
         tags: tags || [],
         imgUrl: imgUrl || [],
         userId,
-        userName: user.name || user.email?.split('@')[0] || 'Anonymous',
+        userName: user.name || user.email?.split('@')[0] || 'User',
         userRole: 'Student',
       },
     })
