@@ -9,7 +9,7 @@ import Component from './corousal'
 
 interface FeedItemProps {
   post: Post
-  onVote?: (postId: string, voteType: 'upvote'| 'downvote') => void
+  onVote: (postId: string, voteType: "upvote" | "downvote") => Promise<void>
   onAnswerSubmit?: (postId: string, content: string) => Promise<void>
 }
 
@@ -125,7 +125,8 @@ export default function FeedItem({ post, onVote, onAnswerSubmit }: FeedItemProps
               <span>{new Date(post.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
-       <Component post={post}/>
+          {post.imgUrl.length > 0 &&     <Component post={post}/>}
+   
           <div className="flex items-center justify-between space-x-4">
           <div className="flex flex-1 flex-row items-center gap-2">
           <button

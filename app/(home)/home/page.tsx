@@ -52,55 +52,47 @@ export default function HomeFeed() {
     }
   }, [data])
 
-  const handleVote = async (postId: string, voteType: 'upvote') => {
+
+  const handleVote = useCallback(async (postId: string, voteType: 'upvote' | 'downvote') => {
     if (!session?.user?.id) {
-      alert("Please sign in to vote");
-      return;
+      alert('Please sign in to vote')
+      return
     }
-  
+
     setPosts((currentPosts) =>
       currentPosts.map((post) => {
         if (post.id === postId) {
+          const voteChange = voteType === 'upvote' ? 1 : -1;
           const isRemovingVote = post.userVote === voteType;
           return {
             ...post,
-            upvotes: isRemovingVote
-              ? post.upvotes - 1 // If already upvoted, remove the upvote
-              : post.upvotes + 1, // If not upvoted, add the upvote
-            userVote: isRemovingVote ? null : voteType, // Toggle userVote
+            upvotes: isRemovingVote ? post.upvotes - voteChange : post.upvotes + voteChange,
+            userVote: isRemovingVote ? null : voteType,
           };
         }
-        return post;
+        return post
       })
-    );
-  
+    )
+
     try {
       const response = await fetch(`/api/posts?id=${postId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          voteType,
-          userId: user?.id,
-        }),
-      });
-  
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voteType, userId: user?.id }),
+      })
+
       if (!response.ok) {
-        throw new Error("Failed to update vote");
+        throw new Error('Failed to update vote')
       }
-  
-      const updatedPost = await response.json();
+
+      const updatedPost = await response.json()
       setPosts((currentPosts) =>
-        currentPosts.map((post) =>
-          post.id === postId ? { ...post, ...updatedPost.post } : post
-        )
-      );
+        currentPosts.map((post) => (post.id === postId ? { ...post, ...updatedPost.post } : post))
+      )
     } catch (err) {
-      console.error('Failed to update vote:', err);
+      console.error('Failed to update vote:', err)
     }
-  };
-  
+  }, [session?.user?.id, user?.id])
 
   const handleAddPost = async (newPost: Post) => {
     if (!session?.user?.id) {
