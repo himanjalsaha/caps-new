@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronUp, MessageCircle, Share2, ThumbsUp } from 'lucide-react'
 import { Post, Answer } from '@/types/next-auth'
+import Image from 'next/image'
+import Component from './corousal'
 
 interface FeedItemProps {
   post: Post
@@ -123,7 +125,7 @@ export default function FeedItem({ post, onVote, onAnswerSubmit }: FeedItemProps
               <span>{new Date(post.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
-
+       <Component post={post}/>
           <div className="flex items-center justify-between space-x-4">
           <div className="flex flex-1 flex-row items-center gap-2">
           <button
