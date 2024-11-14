@@ -43,7 +43,7 @@ export default function UserProfile() {
     )
   }
 
-  const filteredPosts = posts.filter((post) => post.userId === session?.user.id)
+  const filteredPosts = posts.filter((post) => post.userId === user?.id)
 
   
 
