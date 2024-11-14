@@ -7,7 +7,7 @@ import { Post, Answer } from '@/types/next-auth'
 
 interface FeedItemProps {
   post: Post
-  onVote?: (postId: string, voteType: 'upvote') => void
+  onVote?: (postId: string, voteType: 'upvote'| 'downvote') => void
   onAnswerSubmit?: (postId: string, content: string) => Promise<void>
 }
 
@@ -62,13 +62,23 @@ export default function FeedItem({ post, onVote, onAnswerSubmit }: FeedItemProps
       }
     }
   }
-
   const handleUpvote = () => {
     if (onVote) {
-      onVote(post.id, 'upvote')
-      setIsUpvoted(!isUpvoted)
+      // Toggle the upvote state
+      const newUpvoteState = !isUpvoted;
+    
+      // Update the local upvote state
+      setIsUpvoted(newUpvoteState);
+    
+      // Call the onVote function to update the backend or global state
+      onVote(post.id, newUpvoteState ? 'upvote' : 'downvote'); // Send 'downvote' when removing an upvote
+    
+      // Update the post upvotes count locally
+      const updatedUpvotes = newUpvoteState ? post.upvotes + 1 : post.upvotes - 1;
+      post.upvotes = updatedUpvotes;
     }
   }
+  
 
   return (
     <div className="bg-[#242526] rounded-xl p-6 mb-4 hover:bg-[#2D2E2F] transition-colors shadow-lg">
@@ -117,16 +127,16 @@ export default function FeedItem({ post, onVote, onAnswerSubmit }: FeedItemProps
           <div className="flex items-center justify-between space-x-4">
           <div className="flex flex-1 flex-row items-center gap-2">
           <button
-            className={`text-gray-400 hover:text-purple-500 transition-colors ${
-              isUpvoted ? 'text-purple-500' : ''
-            } focus:outline-none group`}
-            onClick={handleUpvote}
-            aria-label="Upvote"
-          >
-            <ThumbsUp className={`w-5 h-5 transform group-hover:scale-110 transition-transform ${
-              isUpvoted ? 'animate-bounce' : ''
-            }`} />
-          </button>
+                className={`text-gray-400 hover:text-purple-500 transition-colors ${
+                  isUpvoted ? 'text-purple-500' : ''
+                } focus:outline-none group`}
+                onClick={handleUpvote}
+                aria-label="Upvote"
+              >
+                <ThumbsUp className={`w-5 h-5 transform group-hover:scale-110 transition-transform ${
+                  isUpvoted ? 'animate-bounce' : ''
+                }`} />
+              </button>
           <span className="text-lg font-bold text-purple-500">{post.upvotes} likes</span>
         </div>
             <button

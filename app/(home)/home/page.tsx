@@ -50,37 +50,28 @@ export default function HomeFeed() {
     }
   }, [data])
 
-  const handleVote = async (postId: string, voteType: 'upvote' | 'downvote') => {
+  const handleVote = async (postId: string, voteType: 'upvote') => {
     if (!session?.user?.id) {
       alert("Please sign in to vote");
       return;
     }
-
+  
     setPosts((currentPosts) =>
       currentPosts.map((post) => {
         if (post.id === postId) {
           const isRemovingVote = post.userVote === voteType;
           return {
             ...post,
-            upvotes:
-              voteType === "upvote"
-                ? isRemovingVote
-                  ? post.upvotes - 1
-                  : post.upvotes + 1
-                : post.upvotes,
-            downvotes:
-              voteType === "downvote"
-                ? isRemovingVote
-                  ? post.downvotes - 1
-                  : post.downvotes + 1
-                : post.downvotes,
-            userVote: isRemovingVote ? null : voteType,
+            upvotes: isRemovingVote
+              ? post.upvotes - 1 // If already upvoted, remove the upvote
+              : post.upvotes + 1, // If not upvoted, add the upvote
+            userVote: isRemovingVote ? null : voteType, // Toggle userVote
           };
         }
         return post;
       })
     );
-
+  
     try {
       const response = await fetch(`/api/posts?id=${postId}`, {
         method: "PUT",
@@ -92,11 +83,11 @@ export default function HomeFeed() {
           userId: session.user.id,
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to update vote");
       }
-
+  
       const updatedPost = await response.json();
       setPosts((currentPosts) =>
         currentPosts.map((post) =>
@@ -104,9 +95,10 @@ export default function HomeFeed() {
         )
       );
     } catch (err) {
-      console.error('Failed to update vote:', err)
+      console.error('Failed to update vote:', err);
     }
   };
+  
 
   const handleAddPost = async (newPost: Post) => {
     if (!session?.user?.id) {
