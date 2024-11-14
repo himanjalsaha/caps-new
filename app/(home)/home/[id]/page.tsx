@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { ChevronUp, ChevronDown, MessageCircle, Share2, Bookmark } from 'lucide-react'
+import Component from '@/app/components/common/corousal'
 
 type Post = {
   id: string;
@@ -84,20 +85,8 @@ export default function PostDetailPage() {
             </div>
           </div>
           <p className="text-lg mb-8">{post.description}</p>
-          {post.imgUrl && post.imgUrl.length > 0 && (
-            <div className="mb-8">
-              {post.imgUrl.map((url, index) => (
-                <img 
-                  key={index} 
-                  src={url} 
-                  alt={`Image ${index + 1} for ${post.title}`} 
-                  width={1200} 
-                  height={800} 
-                  className="rounded-lg mb-6 w-full object-cover"
-                />
-              ))}
-            </div>
-          )}
+          {post.imgUrl.length > 0 &&     <Component post={post}/>}
+
           <div className="flex flex-wrap gap-2 mb-8">
             {post.tags.map((tag) => (
               <span
