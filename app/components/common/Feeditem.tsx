@@ -9,7 +9,7 @@ import Component from './corousal'
 
 interface FeedItemProps {
   post: Post
-  onVote: (postId: string, voteType: "upvote" | "downvote") => Promise<void>
+  onVote?: (postId: string, voteType: "upvote" | "downvote") => Promise<void>
   onAnswerSubmit?: (postId: string, content: string) => Promise<void>
 }
 
