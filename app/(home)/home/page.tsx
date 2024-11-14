@@ -7,6 +7,7 @@ import FeedItem from "@/app/components/common/Feeditem";
 import { Post, Answer } from "@/types/next-auth";
 import { useSession, signIn } from "next-auth/react";
 import AnswersModal from "@/app/components/common/answermodal";
+import { useAuth } from "@/app/contexts/AuthContext";
 
 // Custom hook for data fetching
 function useFetch<T>(url: string) {
@@ -41,6 +42,7 @@ export default function HomeFeed() {
   const { data: session } = useSession()
   const { data, isLoading, error , refetch } = useFetch<{ posts: Post[] }>('/api/posts')
   const [posts, setPosts] = useState<Post[]>([])
+  const { user } = useAuth();
 
   const topRef = useRef<HTMLDivElement>(null);
 
@@ -89,7 +91,7 @@ export default function HomeFeed() {
         },
         body: JSON.stringify({
           voteType,
-          userId: session.user.id,
+          userId: user?.id,
         }),
       });
 
@@ -124,7 +126,7 @@ export default function HomeFeed() {
         },
         body: JSON.stringify({
           ...newPost,
-          userId: session.user.id,
+          userId: user?.id,
         }),
       });
 
@@ -159,7 +161,7 @@ export default function HomeFeed() {
         body: JSON.stringify({
           content: content,
           doubtPostId: postId,
-          userId: session.user.id,
+          userId: user?.id,
         }),
       });
 
