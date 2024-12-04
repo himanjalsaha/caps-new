@@ -5,8 +5,6 @@ import { Send, Smile, Paperclip, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { io, Socket } from "socket.io-client";
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-// import { ScrollArea } from "@/components/ui/scroll-area"
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 
@@ -25,7 +23,7 @@ type Chat = {
 
 type Message = {
   text: string;
-  sender: "user" | "bot";
+  sender: "user";
   file?: File;
 };
 
@@ -84,11 +82,7 @@ function ScrollArea({
 
 export default function ChatBox() {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-  const [messages, setMessages] = useState<{ [key: number]: Message[] }>({
-    1: [{ text: "Hello! How can I help you today?", sender: "bot" }],
-    2: [{ text: "Hi Jane! What time shall we meet?", sender: "bot" }],
-    3: [{ text: "Hey Bob! Yes, it was an amazing game!", sender: "bot" }],
-  });
+  const [messages, setMessages] = useState<{ [key: number]: Message[] }>({});
   const [inputMessage, setInputMessage] = useState("");
   const [showEmojis, setShowEmojis] = useState(false);
   const [showFileUpload, setShowFileUpload] = useState(false);
@@ -167,9 +161,14 @@ export default function ChatBox() {
       // Emit message to server
       socket.emit("chat message", {
         message: inputMessage,
-        senderId: "currentUserId", // Replace with actual user ID
+        senderId: "currentUser Id", // Replace with actual user ID
         receiverId: selectedChat.id.toString(),
       });
+
+      setMessages((prev) => ({
+        ...prev,
+        [selectedChat.id]: [...(prev[selectedChat.id] || []), newMessage],
+      }));
 
       setInputMessage("");
       setSelectedFile(null);
@@ -245,18 +244,9 @@ export default function ChatBox() {
         <ScrollArea className="flex-1 p-4">
           {selectedChat &&
             messages[selectedChat.id]?.map((message, index) => (
-              <div
-                key={index}
-                className={`mb-4 ${
-                  message.sender === "user" ? "text-right" : "text-left"
-                }`}
-              >
+              <div key={index} className={`mb-4 text-right`}>
                 <span
-                  className={`inline-block p-2 rounded-lg ${
-                    message.sender === "user"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-600 text-gray-200"
-                  }`}
+                  className={`inline-block p-2 rounded-lg bg-blue-500 text-white`}
                 >
                   {message.text}
                   {message.file && (
